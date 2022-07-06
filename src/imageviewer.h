@@ -1,0 +1,31 @@
+#ifndef IMAGEVIEWER_H
+#define IMAGEVIEWER_H
+
+#include <QMainWindow>
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class ImageViewer; }
+QT_END_NAMESPACE
+
+class PaintArea;
+
+class ImageViewer : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit ImageViewer(QWidget *parent = nullptr);
+    ~ImageViewer();
+
+private slots:
+    void open();
+    void save();
+
+private:
+    void loadImage(const QString &filePath);
+
+    PaintArea *paintArea;
+    Ui::ImageViewer *ui;
+};
+
+#endif // IMAGEVIEWER_H

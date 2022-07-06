@@ -1,8 +1,10 @@
 set(PROJECT_SOURCES
     main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+    imageviewer.cpp
+    imageviewer.h
+    imageviewer.ui
+    paintarea.cpp
+    paintarea.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
