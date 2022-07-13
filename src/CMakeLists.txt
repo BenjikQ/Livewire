@@ -5,6 +5,9 @@ set(PROJECT_SOURCES
     imageviewer.ui
     paintarea.cpp
     paintarea.h
+    dijkstra.hpp
+    image_graph.hpp
+    lw_typedefs.hpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -31,6 +34,8 @@ else()
 endif()
 
 target_link_libraries(Livewire PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(Livewire PRIVATE ${OpenCV_LIBS})
+target_include_directories(Livewire PRIVATE ${OpenCV_DIR}/include/opencv2)
 
 set_target_properties(Livewire PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
