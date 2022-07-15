@@ -39,9 +39,11 @@ public:
             return ndiag.at<double>(p.y - 1, p.x - 1);
         case Dir::BOTTOMRIGHT:
             return ndiag.at<double>(p.y, p.x);
+        default:
+            return INF;
         }
     }
-}
+};
 
 
 

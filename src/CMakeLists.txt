@@ -8,6 +8,7 @@ set(PROJECT_SOURCES
     dijkstra.hpp
     image_graph.hpp
     lw_typedefs.hpp
+    lw_utils.hpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
