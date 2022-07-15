@@ -3,8 +3,7 @@
 
 #include <QWidget>
 
-class PaintArea : public QWidget
-{
+class PaintArea : public QWidget {
     Q_OBJECT
 public:
     explicit PaintArea(QWidget *parent = nullptr);
@@ -27,4 +26,4 @@ private:
     QPoint lastPoint;
 };
 
-#endif // PAINTAREA_H
+#endif  // PAINTAREA_H
