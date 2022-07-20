@@ -42,20 +42,28 @@ cv::Mat laplacianZeroCrossing(const cv::Mat &blurred) {
 }
 
 cv::Mat gradientSobel(const cv::Mat &blurred) {
-    cv::Mat grad_x, grad_y, grad;
+    cv::Mat grad_x, grad_y, grad_x2, grad_y2, grad, gradnorm;
 
     cv::Sobel(blurred, grad_x, CV_64F, 1, 0, 1, 1, 0, cv::BORDER_DEFAULT);
     cv::Sobel(blurred, grad_y, CV_64F, 0, 1, 1, 1, 0, cv::BORDER_DEFAULT);
-    addWeighted(grad_x, 0.5, grad_y, 0.5, 0, grad);
+    cv::pow(grad_x, 2, grad_x2);
+    cv::pow(grad_y, 2, grad_y2);
+    cv::sqrt(grad_x2 + grad_y2, grad);
+    cv::normalize(grad, gradnorm, 0, 1, cv::NORM_MINMAX);
 
-    return grad;
+    return 1 - gradnorm;
 }
 
 int debugMain() {
-    auto x = gaussFilter(getTestImage());
-    cv::imshow("a", laplacianZeroCrossing(x));
-    (void)cv::waitKey(0);
+    cv::Mat m[4];
+    m[0] = getTestImage();
+    m[1] = gaussFilter(m[0]);
+    m[2] = gradientSobel(m[1]);
 
+    cv::imshow("a", m[2]);
+
+
+    (void)cv::waitKey(0);
     return 0;
 }
 
