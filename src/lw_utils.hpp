@@ -54,11 +54,19 @@ cv::Mat gradientSobel(const cv::Mat &blurred) {
     return 1 - gradnorm;
 }
 
+cv::Mat edgesCanny(const cv::Mat &img) {
+    cv::Mat edges, result;
+    cv::Canny(img, edges, 60, 110, 3, true);
+    edges.convertTo(result, CV_64F, -1. / 255, 1);
+
+    return result;
+}
+
 int debugMain() {
     cv::Mat m[4];
     m[0] = getTestImage();
     m[1] = gaussFilter(m[0]);
-    m[2] = gradientSobel(m[1]);
+    m[2] = edgesCanny(m[0]);
 
     cv::imshow("a", m[2]);
 
