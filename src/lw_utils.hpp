@@ -51,7 +51,7 @@ cv::Mat gradientSobel(const cv::Mat &blurred) {
     cv::sqrt(grad_x2 + grad_y2, grad);
     cv::normalize(grad, gradnorm, 0, 1, cv::NORM_MINMAX);
 
-    return 1 - gradnorm;
+    return gradnorm;
 }
 
 cv::Mat edgesCanny(const cv::Mat &img) {
@@ -62,13 +62,44 @@ cv::Mat edgesCanny(const cv::Mat &img) {
     return result;
 }
 
+std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
+    constexpr auto acos_op = [](auto x){ return std::acos(x); };
+    const auto w = imgui8.cols, h = imgui8.rows;
+    const cv::Rect rect[4][2] {
+        {{ 0, 0, w, h - 1 }, { 0, 1, w, h - 1 }},
+        {{ 0, 0, w - 1, h }, { 1, 0, w - 1, h }},
+        {{ 0, 1, w - 1, h - 1 }, { 1, 0, w - 1, h - 1 }},
+        {{ 0, 0, w - 1, h - 1 }, { 1, 1, w - 1, h - 1 }}
+    };
+
+    std::array<cv::Mat, 4> vals;
+    cv::Mat temp[3], img;
+
+    imgui8.convertTo(img, CV_64F, 1. / 255);
+
+    for (uint i = 0; i < vals.size(); ++i) {
+        temp[0] = cv::abs(img(rect[i][0]) - img(rect[i][1]));
+        temp[1] = grad(rect[i][0]).mul(temp[0]);
+        temp[2] = grad(rect[i][1]).mul(temp[0]);
+        std::transform(temp[1].begin<double>(), temp[1].end<double>(), temp[1].begin<double>(), acos_op);
+        std::transform(temp[2].begin<double>(), temp[2].end<double>(), temp[2].begin<double>(), acos_op);
+        vals[i] = (temp[1] + temp[2]) * M_1_PI;
+    }
+
+    return vals;
+}
+
 int debugMain() {
     cv::Mat m[4];
     m[0] = getTestImage();
     m[1] = gaussFilter(m[0]);
-    m[2] = edgesCanny(m[0]);
+    m[2] = gradientSobel(m[1]);
+    auto dc = dirCosts(m[0], m[2]);
 
-    cv::imshow("a", m[2]);
+    cv::imshow("a", dc[0]);
+    cv::imshow("b", dc[1]);
+    cv::imshow("c", dc[2]);
+    cv::imshow("d", dc[3]);
 
 
     (void)cv::waitKey(0);
