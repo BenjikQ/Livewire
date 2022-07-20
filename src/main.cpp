@@ -1,12 +1,8 @@
-#include "imageviewer.h"
-#include "lw_utils.hpp"
-
 #include <QApplication>
 
-int main(int argc, char *argv[])
-{
-    return debugMain();
+#include "imageviewer.h"
 
+int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     ImageViewer imageViewer;
     imageViewer.show();

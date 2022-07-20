@@ -34,9 +34,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(Livewire PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(Livewire PRIVATE ${OpenCV_LIBS})
-target_include_directories(Livewire PRIVATE ${OpenCV_DIR}/include/opencv2)
+target_link_libraries(Livewire PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS})
 
 set_target_properties(Livewire PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
