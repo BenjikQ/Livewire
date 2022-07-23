@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
-#include <core.hpp>
-#include "lw_typedefs.hpp"
+#include <opencv2/core.hpp>
+#include "typedefs.hpp"
 
 class DistanceGraph {
 public:

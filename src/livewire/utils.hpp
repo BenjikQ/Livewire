@@ -1,9 +1,10 @@
 #pragma once
-#include "lw_typedefs.hpp"
-#include <core.hpp>
-#include <imgproc.hpp>
-#include <imgcodecs.hpp>
-#include <highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
+#include "typedefs.hpp"
 
 cv::Mat getTestImage() {
     constexpr const char *fileName = "test.png";
@@ -29,14 +30,16 @@ cv::Mat gaussFilter(const cv::Mat &mat) {
 cv::Mat laplacianZeroCrossing(const cv::Mat &blurred) {
     cv::Mat laplace, minLap, maxLap, zeroCrossing;
 
-    //cv::GaussianBlur(mat, blurred, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
+    // cv::GaussianBlur(mat, blurred, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
     cv::Laplacian(blurred, laplace, 3);
 
     // https://stackoverflow.com/a/48440931
-    cv::morphologyEx(laplace, minLap, cv::MORPH_ERODE, cv::Mat::ones(3, 3, CV_64F));
-    cv::morphologyEx(laplace, maxLap, cv::MORPH_DILATE, cv::Mat::ones(3, 3, CV_64F));
+    cv::morphologyEx(laplace, minLap, cv::MORPH_ERODE,
+                     cv::Mat::ones(3, 3, CV_64F));
+    cv::morphologyEx(laplace, maxLap, cv::MORPH_DILATE,
+                     cv::Mat::ones(3, 3, CV_64F));
 
-    zeroCrossing = (minLap < 0 & laplace > 0) | (maxLap > 0 & laplace < 0);
+    zeroCrossing = (minLap<0 & laplace> 0) | (maxLap > 0 & laplace < 0);
 
     return zeroCrossing;
 }
@@ -63,13 +66,13 @@ cv::Mat edgesCanny(const cv::Mat &img) {
 }
 
 std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
-    constexpr auto acos_op = [](auto x){ return std::acos(x); };
+    constexpr auto acos_op = [](auto x) { return std::acos(x); };
     const auto w = imgui8.cols, h = imgui8.rows;
-    const cv::Rect rect[4][2] {
-        {{ 0, 0, w, h - 1 }, { 0, 1, w, h - 1 }},
-        {{ 0, 0, w - 1, h }, { 1, 0, w - 1, h }},
-        {{ 0, 1, w - 1, h - 1 }, { 1, 0, w - 1, h - 1 }},
-        {{ 0, 0, w - 1, h - 1 }, { 1, 1, w - 1, h - 1 }}
+    const cv::Rect rect[4][2]{
+        { { 0, 0, w, h - 1 }, { 0, 1, w, h - 1 } },
+        { { 0, 0, w - 1, h }, { 1, 0, w - 1, h } },
+        { { 0, 1, w - 1, h - 1 }, { 1, 0, w - 1, h - 1 } },
+        { { 0, 0, w - 1, h - 1 }, { 1, 1, w - 1, h - 1 } }
     };
 
     std::array<cv::Mat, 4> vals;
@@ -81,8 +84,10 @@ std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
         temp[0] = cv::abs(img(rect[i][0]) - img(rect[i][1]));
         temp[1] = grad(rect[i][0]).mul(temp[0]);
         temp[2] = grad(rect[i][1]).mul(temp[0]);
-        std::transform(temp[1].begin<double>(), temp[1].end<double>(), temp[1].begin<double>(), acos_op);
-        std::transform(temp[2].begin<double>(), temp[2].end<double>(), temp[2].begin<double>(), acos_op);
+        std::transform(temp[1].begin<double>(), temp[1].end<double>(),
+                       temp[1].begin<double>(), acos_op);
+        std::transform(temp[2].begin<double>(), temp[2].end<double>(),
+                       temp[2].begin<double>(), acos_op);
         vals[i] = (temp[1] + temp[2]) * M_1_PI;
     }
 
@@ -105,4 +110,3 @@ int debugMain() {
     (void)cv::waitKey(0);
     return 0;
 }
-
