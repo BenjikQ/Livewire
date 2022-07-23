@@ -10,14 +10,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 Include(FetchContent)
 
-add_subdirectory(src/livewire)
-add_subdirectory(src/app)
+add_subdirectory(src)
 
 string(
-        COMPARE EQUAL
-        "${CMAKE_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}"
-        PROJECT_IS_TOP_LEVEL)
+    COMPARE EQUAL
+    "${CMAKE_SOURCE_DIR}"
+    "${PROJECT_SOURCE_DIR}"
+    PROJECT_IS_TOP_LEVEL)
 
 option(ENABLE_TESTING "Enable the tests" ${PROJECT_IS_TOP_LEVEL})
 if(ENABLE_TESTING)

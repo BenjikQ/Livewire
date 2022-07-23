@@ -5,7 +5,6 @@
 
 #include "typedefs.hpp"
 
-
 Point nextOrigin(const Array2D<double> &dist, const Array2D<uint8_t> &visited) {
     double mindist = INF;
     int64_t minind = -1;

@@ -1,27 +1,15 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#define _USE_MATH_DEFINES
+#include <math.h>  // doesn't work with <cmath> (M_1_PI)
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "typedefs.hpp"
-
-cv::Mat getTestImage() {
-    constexpr const char *fileName = "test.png";
-
-    cv::Mat image = cv::imread(fileName), imageGray;
-    cv::cvtColor(image, imageGray, cv::COLOR_BGR2GRAY);
-
-    return imageGray;
-}
-
-void writeTestImage(const cv::Mat &img) {
-    constexpr const char *fileName = "test_out.png";
-
-    cv::imwrite(fileName, img);
-}
 
 cv::Mat gaussFilter(const cv::Mat &mat) {
     cv::Mat blurred;
@@ -94,23 +82,6 @@ std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
     }
 
     return vals;
-}
-
-int debugMain() {
-    cv::Mat m[4];
-    m[0] = getTestImage();
-    m[1] = gaussFilter(m[0]);
-    m[2] = gradientSobel(m[1]);
-    auto dc = dirCosts(m[0], m[2]);
-
-    cv::imshow("a", dc[0]);
-    cv::imshow("b", dc[1]);
-    cv::imshow("c", dc[2]);
-    cv::imshow("d", dc[3]);
-
-
-    (void)cv::waitKey(0);
-    return 0;
 }
 
 #endif  // UTILS_HPP
