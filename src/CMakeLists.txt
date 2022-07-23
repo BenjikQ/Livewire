@@ -1,14 +1,14 @@
 set(PROJECT_SOURCES
     main.cpp
-    imageviewer.cpp
-    imageviewer.h
-    imageviewer.ui
-    paintarea.cpp
-    paintarea.h
+    image_viewer.cpp
+    image_viewer.hpp
+    image_viewer.ui
+    paint_area.cpp
+    paint_area.hpp
     dijkstra.hpp
     image_graph.hpp
-    lw_typedefs.hpp
-    lw_utils.hpp
+    typedefs.hpp
+    utils.hpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

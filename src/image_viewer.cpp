@@ -1,11 +1,11 @@
-#include "imageviewer.h"
+#include "image_viewer.hpp"
 
 #include <QFileDialog>
 #include <QShortcut>
 #include <QStandardPaths>
 
-#include "./ui_imageviewer.h"
-#include "paintarea.h"
+#include "./ui_image_viewer.h"
+#include "paint_area.hpp"
 
 ImageViewer::ImageViewer(QWidget *parent) :
     QMainWindow(parent),
