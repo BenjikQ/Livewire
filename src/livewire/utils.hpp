@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UTILS_HPP
+#define UTILS_HPP
+
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -110,3 +112,5 @@ int debugMain() {
     (void)cv::waitKey(0);
     return 0;
 }
+
+#endif  // UTILS_HPP

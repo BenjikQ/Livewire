@@ -4,8 +4,8 @@
 #include <QShortcut>
 #include <QStandardPaths>
 
-#include "./ui_image_viewer.h"
 #include "paint_area.hpp"
+#include "ui_image_viewer.h"
 
 ImageViewer::ImageViewer(QWidget *parent) :
     QMainWindow(parent),

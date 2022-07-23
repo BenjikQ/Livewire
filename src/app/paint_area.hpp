@@ -1,5 +1,5 @@
-#ifndef PAINTAREA_H
-#define PAINTAREA_H
+#ifndef PAINTAREA_HPP
+#define PAINTAREA_HPP
 
 #include <QWidget>
 
@@ -26,4 +26,4 @@ private:
     QPoint lastPoint;
 };
 
-#endif  // PAINTAREA_H
+#endif  // PAINTAREA_HPP
