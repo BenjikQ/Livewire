@@ -1,7 +1,9 @@
-#pragma once
+#ifndef TYPEDEFS_HPP
+#define TYPEDEFS_HPP
+
 #include <cstdint>
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 constexpr double INF = std::numeric_limits<double>::infinity();
@@ -18,9 +20,7 @@ enum Dir : uint8_t {
     COUNT
 };
 
-constexpr Dir operator+(Dir d, int n) {
-    return Dir(int(d) + n);
-}
+constexpr Dir operator+(Dir d, int n) { return Dir(int(d) + n); }
 constexpr Dir operator-(Dir d, int n) { return d + (-n); }
 constexpr Dir operator-(Dir d) { return d + 4; }
 constexpr Dir operator++(Dir &d) { return d = d + 1; }
@@ -30,21 +30,19 @@ struct Point {
 
     constexpr Point operator+(Dir d) const {
         switch (d) {
-        case Dir::RIGHT:	   return { x + 1, y };
-        case Dir::TOPRIGHT:	   return { x + 1, y - 1 };
-        case Dir::TOP:		   return { x, y - 1 };
-        case Dir::TOPLEFT:	   return { x - 1, y - 1 };
-        case Dir::LEFT:		   return { x - 1, y };
-        case Dir::BOTTOMLEFT:  return { x - 1, y + 1 };
-        case Dir::BOTTOM:	   return { x, y + 1 };
+        case Dir::RIGHT: return { x + 1, y };
+        case Dir::TOPRIGHT: return { x + 1, y - 1 };
+        case Dir::TOP: return { x, y - 1 };
+        case Dir::TOPLEFT: return { x - 1, y - 1 };
+        case Dir::LEFT: return { x - 1, y };
+        case Dir::BOTTOMLEFT: return { x - 1, y + 1 };
+        case Dir::BOTTOM: return { x, y + 1 };
         case Dir::BOTTOMRIGHT: return { x + 1, y + 1 };
-        default:			   return { x, y };
+        default: return { x, y };
         }
     }
 
-    constexpr Point operator-(Dir d) const {
-        return operator+(-d);
-    }
+    constexpr Point operator-(Dir d) const { return operator+(-d); }
 
     constexpr bool operator==(const Point &other) const {
         return x == other.x && y == other.y;
@@ -61,7 +59,7 @@ std::ostream &operator<<(std::ostream &ost, const Point &p) {
 }
 
 struct Node {
-    Point p{}, prev{ -1,-1 };
+    Point p{}, prev{ -1, -1 };
     double dist = INF;
     bool visited = false;
 
@@ -88,7 +86,7 @@ struct Array2D {
 };
 
 struct GraphMock {
-    Array2D<char> nodes{15, 10};
+    Array2D<char> nodes{ 15, 10 };
 
     GraphMock() {
         srand(5432);
@@ -103,7 +101,7 @@ struct GraphMock {
         return double(std::abs(nodes[p] - nodes[p + d]));
     }
 
-    void print() const {
-        nodes.print();
-    }
+    void print() const { nodes.print(); }
 };
+
+#endif  // TYPEDEFS_HPP

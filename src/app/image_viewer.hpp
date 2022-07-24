@@ -1,5 +1,5 @@
-#ifndef IMAGEVIEWER_H
-#define IMAGEVIEWER_H
+#ifndef IMAGEVIEWER_HPP
+#define IMAGEVIEWER_HPP
 
 #include <QMainWindow>
 
@@ -29,4 +29,4 @@ private:
     Ui::ImageViewer *ui;
 };
 
-#endif  // IMAGEVIEWER_H
+#endif  // IMAGEVIEWER_HPP

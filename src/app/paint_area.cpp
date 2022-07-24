@@ -1,4 +1,4 @@
-#include "paintarea.h"
+#include "paint_area.hpp"
 
 #include <QImageReader>
 #include <QImageWriter>
