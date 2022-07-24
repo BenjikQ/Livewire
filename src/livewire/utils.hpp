@@ -1,9 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#define _USE_MATH_DEFINES
-#include <math.h>  // doesn't work with <cmath> (M_1_PI)
-
+#include <numbers>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -78,7 +76,7 @@ std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
                        temp[1].begin<double>(), acos_op);
         std::transform(temp[2].begin<double>(), temp[2].end<double>(),
                        temp[2].begin<double>(), acos_op);
-        vals[i] = (temp[1] + temp[2]) * M_1_PI;
+        vals[i] = (temp[1] + temp[2]) * std::numbers::inv_pi;
     }
 
     return vals;

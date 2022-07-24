@@ -10,4 +10,5 @@ target_sources(livewire
         dijkstra.hpp
         image_graph.hpp
         typedefs.hpp
-        utils.hpp)
+        utils.hpp
+        cost_functions.hpp)
