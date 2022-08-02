@@ -1,5 +1,7 @@
 #include "cost_functions.hpp"
 
+#include "utils.hpp"
+
 DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img) {
     constexpr double gradWeight = 0.4;
     constexpr double lzcWeight = 0.4;

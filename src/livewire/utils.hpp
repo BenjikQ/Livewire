@@ -7,8 +7,6 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "typedefs.hpp"
-
 cv::Mat gaussFilter(const cv::Mat &mat);
 cv::Mat laplacianZeroCrossing(const cv::Mat &blurred);
 cv::Mat gradientSobel(const cv::Mat &blurred);

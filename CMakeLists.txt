@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 project(Livewire VERSION 0.1 LANGUAGES CXX)
 
@@ -46,4 +46,9 @@ endif()
 set(BUILD_BENCHMARKS ON)
 if(BUILD_BENCHMARKS)
     add_subdirectory(benchmark)
+endif()
+
+set(BUILD_EXTRAS ON)
+if(BUILD_EXTRAS)
+    add_subdirectory(extras)
 endif()
