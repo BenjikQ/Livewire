@@ -1,6 +1,6 @@
 #include <QApplication>
 
-#include "image_viewer.h"
+#include "image_viewer.hpp"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);

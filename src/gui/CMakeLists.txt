@@ -1,7 +1,7 @@
 set(PROJECT_SOURCES
         main.cpp
         image_viewer.cpp
-        image_viewer.h
+        image_viewer.hpp
         image_viewer.ui
 )
 

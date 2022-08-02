@@ -18,10 +18,18 @@ Include(FetchContent)
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v3.1.0
-)
+  GIT_TAG        v3.1.0)
 
-FetchContent_MakeAvailable(Catch2)
+FetchContent_Declare(
+    googlebenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        v1.6.2)
+
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+set(BENCHMARK_ENABLE_TESTING OFF)
+set(BENCHMARK_ENABLE_WERROR OFF)
+set(BENCHMARK_FORCE_WERROR OFF)
+FetchContent_MakeAvailable(Catch2 googlebenchmark)
 
 add_subdirectory(src)
 
@@ -33,4 +41,9 @@ endif()
 
 if(BUILD_TESTING)
   add_subdirectory(test)
+endif()
+
+set(BUILD_BENCHMARKS ON)
+if(BUILD_BENCHMARKS)
+    add_subdirectory(benchmark)
 endif()

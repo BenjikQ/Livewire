@@ -1,4 +1,4 @@
-#include "image_viewer.h"
+#include "image_viewer.hpp"
 
 #include "./ui_image_viewer.h"
 
