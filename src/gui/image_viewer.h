@@ -4,11 +4,12 @@
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class ImageViewer; }
+namespace Ui {
+class ImageViewer;
+}
 QT_END_NAMESPACE
 
-class ImageViewer : public QMainWindow
-{
+class ImageViewer : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -18,4 +19,4 @@ public:
 private:
     Ui::ImageViewer *ui;
 };
-#endif // IMAGEVIEWER_H
+#endif  // IMAGEVIEWER_H
