@@ -1,5 +1,5 @@
-#ifndef IMAGEVIEWER_H
-#define IMAGEVIEWER_H
+#ifndef IMAGEVIEWER_HPP
+#define IMAGEVIEWER_HPP
 
 #include <QMainWindow>
 
@@ -9,14 +9,24 @@ class ImageViewer;
 }
 QT_END_NAMESPACE
 
+class PaintArea;
+
 class ImageViewer : public QMainWindow {
     Q_OBJECT
 
 public:
-    ImageViewer(QWidget *parent = nullptr);
+    explicit ImageViewer(QWidget *parent = nullptr);
     ~ImageViewer();
 
+private slots:
+    void open();
+    void save();
+
 private:
+    void loadImage(const QString &filePath);
+
+    PaintArea *paintArea;
     Ui::ImageViewer *ui;
 };
-#endif  // IMAGEVIEWER_H
+
+#endif  // IMAGEVIEWER_HPP

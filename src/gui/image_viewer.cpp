@@ -1,10 +1,50 @@
 #include "image_viewer.hpp"
 
-#include "./ui_image_viewer.h"
+#include <QFileDialog>
+#include <QShortcut>
+#include <QStandardPaths>
+
+#include "paint_area.hpp"
+#include "ui_image_viewer.h"
 
 ImageViewer::ImageViewer(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::ImageViewer) {
+    QMainWindow(parent),
+    paintArea(new PaintArea(this)),
+    ui(new Ui::ImageViewer) {
     ui->setupUi(this);
+    new QShortcut(Qt::CTRL | Qt::Key_W, this, SLOT(close()));
+    QSize size = this->size();
+    statusBar()->showMessage(QString::number(size.width()) + " x " +
+                             QString::number(size.height()) + " piks.");
+    ui->scrollArea->setVisible(false);
+    ui->scrollArea->setWidget(paintArea);
 }
 
 ImageViewer::~ImageViewer() { delete ui; }
+
+void ImageViewer::open() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getOpenFileName(this, tr("Open Image"), homeDirectory,
+                                     tr("Image Files (*.png *.jpg *.bmp)"));
+    const QString fileName = QFileInfo(filePath).fileName();
+    setWindowTitle(fileName + " - Livewire");
+    if (!filePath.isEmpty()) {
+        paintArea->open(filePath);
+        ui->scrollArea->setVisible(true);
+    }
+}
+
+void ImageViewer::save() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getSaveFileName(this, tr("Open Image"), homeDirectory,
+                                     tr("Image Files (*.png *.jpg *.bmp)"));
+    if (!filePath.isEmpty()) paintArea->save(filePath);
+}

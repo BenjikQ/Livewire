@@ -1,12 +1,14 @@
 find_package(OpenCV REQUIRED)
 
+message(STATUS "XXX: ${OpenCV_DIR}")
+
 add_library(livewire)
 
 target_link_libraries(livewire
     PUBLIC
         opencv_core
-        opencv_imgproc
-        opencv_imgcodecs)
+        opencv_imgcodecs
+        opencv_imgproc)
 target_include_directories(livewire PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_sources(livewire
     PRIVATE
