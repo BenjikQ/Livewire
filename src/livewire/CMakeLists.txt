@@ -1,7 +1,5 @@
 find_package(OpenCV REQUIRED)
 
-message(STATUS "XXX: ${OpenCV_DIR}")
-
 add_library(livewire)
 
 target_link_libraries(livewire
