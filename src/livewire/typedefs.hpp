@@ -8,7 +8,7 @@
 
 constexpr double INF = std::numeric_limits<double>::infinity();
 
-enum Dir : uint8_t {
+enum Dir {
     RIGHT,
     TOPRIGHT,
     TOP,
