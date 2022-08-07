@@ -9,10 +9,10 @@ cv::Mat gaussFilter(const cv::Mat &mat) {
 cv::Mat laplacianZeroCrossing(const cv::Mat &blurred) {
     cv::Mat laplace, minLap, maxLap, zeroCrossing;
 
-          // cv::GaussianBlur(mat, blurred, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
+    // cv::GaussianBlur(mat, blurred, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
     cv::Laplacian(blurred, laplace, 3);
 
-          // https://stackoverflow.com/a/48440931
+    // https://stackoverflow.com/a/48440931
     cv::morphologyEx(laplace, minLap, cv::MORPH_ERODE,
                      cv::Mat::ones(3, 3, CV_64F));
     cv::morphologyEx(laplace, maxLap, cv::MORPH_DILATE,
@@ -44,30 +44,35 @@ cv::Mat edgesCanny(const cv::Mat &img) {
     return result;
 }
 
-std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
+std::array<cv::Mat, 8> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
     constexpr auto acos_op = [](auto x) { return std::acos(x); };
     const auto w = imgui8.cols, h = imgui8.rows;
     const cv::Rect rect[4][2]{
-        { { 0, 0, w, h - 1 }, { 0, 1, w, h - 1 } },
         { { 0, 0, w - 1, h }, { 1, 0, w - 1, h } },
         { { 0, 1, w - 1, h - 1 }, { 1, 0, w - 1, h - 1 } },
-        { { 0, 0, w - 1, h - 1 }, { 1, 1, w - 1, h - 1 } }
+        { { 0, 1, w, h - 1 }, { 0, 0, w, h - 1 } },
+        { { 1, 1, w - 1, h - 1 }, { 0, 0, w - 1, h - 1 } }
     };
 
-    std::array<cv::Mat, 4> vals;
+    std::array<cv::Mat, 8> vals;
     cv::Mat temp[3], img;
 
     imgui8.convertTo(img, CV_64F, 1. / 255);
 
     for (uint i = 0; i < vals.size(); ++i) {
-        temp[0] = cv::abs(img(rect[i][0]) - img(rect[i][1]));
-        temp[1] = grad(rect[i][0]).mul(temp[0]);
-        temp[2] = grad(rect[i][1]).mul(temp[0]);
+        const uint ind1 = i & 3, ind2 = ((i & 4) != 0);
+        temp[0] = cv::abs(img(rect[ind1][ind2]) - img(rect[ind1][!ind2]));
+        temp[1] = grad(rect[ind1][ind2]).mul(temp[0]);
+        temp[2] = grad(rect[ind1][!ind2]).mul(temp[0]);
         std::transform(temp[1].begin<double>(), temp[1].end<double>(),
                        temp[1].begin<double>(), acos_op);
         std::transform(temp[2].begin<double>(), temp[2].end<double>(),
                        temp[2].begin<double>(), acos_op);
-        vals[i] = (temp[1] + temp[2]) * std::numbers::inv_pi;
+        temp[0] = (temp[1] + temp[2]) * std::numbers::inv_pi;
+
+        cv::copyMakeBorder(temp[0], vals[i], rect[ind1][ind2].y,
+                           rect[ind1][!ind2].y, rect[ind1][ind2].x,
+                           rect[ind1][!ind2].x, cv::BORDER_CONSTANT, 1.0);
     }
 
     return vals;

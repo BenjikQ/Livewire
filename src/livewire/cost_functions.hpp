@@ -3,6 +3,6 @@
 
 #include "image_graph.hpp"
 
-DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img);
+DistanceGraph::DistArr basicCostFunc(const cv::Mat &img);
 
 #endif  // COST_FUNCTIONS_HPP

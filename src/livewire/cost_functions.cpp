@@ -2,7 +2,7 @@
 
 #include "utils.hpp"
 
-DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img) {
+DistanceGraph::DistArr basicCostFunc(const cv::Mat &img) {
     constexpr double gradWeight = 0.4;
     constexpr double lzcWeight = 0.4;
     constexpr double dirWeight = 0.2;
@@ -14,10 +14,8 @@ DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img) {
     grad_p_lzc = (1 - grad) * gradWeight + lzc * lzcWeight;
     auto dir = dirCosts(img, grad);
 
-    for (int i = 0; i < 4; ++i)
-        dir[i] = dir[i] * dirWeight;
-    for (int i = 0; i < 4; ++i)
-        dir[i] = dir[i] + grad_p_lzc({ 0, 0, dir[i].cols, dir[i].rows });
+    for (int i = 0; i < dir.size(); ++i)
+        dir[i] = dir[i] * dirWeight + grad_p_lzc;
 
-    return { dir[0], dir[1], dir[2], dir[3] };
+    return dir;
 }

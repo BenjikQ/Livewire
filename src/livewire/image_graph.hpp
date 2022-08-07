@@ -8,21 +8,23 @@
 
 class DistanceGraph {
 public:
-    using DistQuad = std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>;
-    using Func = std::function<DistQuad(const cv::Mat &)>;
+    using DistArr = std::array<cv::Mat, Dir::COUNT>;
+    using DirFunc = std::function<DistArr(const cv::Mat &)>;
+    using PointFunc = std::function<cv::Mat(const cv::Mat &)>;
 
 private:
-    cv::Mat vert, horiz, pdiag, ndiag;
+    DistArr values;
+    bool directional;
 
 public:
     DistanceGraph() = default;
+    DistanceGraph(const cv::Mat &imageLuminance, PointFunc distanceFunc);
+    DistanceGraph(const cv::Mat &imageLuminance, DirFunc distanceFunc);
 
-    DistanceGraph(const cv::Mat &imageLuminance, Func &&distanceFunc);
+    int64_t w() const { return values[0].cols; }
+    int64_t h() const { return values[0].rows; }
 
-    int64_t w() const { return vert.cols; }
-    int64_t h() const { return horiz.rows; }
-
-    double distance(const Point &p, Dir d) const;
+    double distance(const Point &p, Dir d = {}) const;
 };
 
 #endif  // IMAGE_GRAPH_HPP
