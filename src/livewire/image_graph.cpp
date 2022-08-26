@@ -3,7 +3,7 @@
 DistanceGraph::DistanceGraph(const cv::Mat &imageLuminance,
                              PointFunc distanceFunc) :
     directional(false) {
-    values[0] = distanceFunc(imageLuminance);
+    values[0] = distanceFunc(imageLuminance, 0);
 }
 
 DistanceGraph::DistanceGraph(const cv::Mat &imageLuminance,
@@ -13,5 +13,5 @@ DistanceGraph::DistanceGraph(const cv::Mat &imageLuminance,
 }
 
 double DistanceGraph::distance(const Point &p, Dir d) const {
-    return values[d].at<double>(p.y, p.x);
+    return values[d * directional].at<double>(p.y, p.x);
 }

@@ -9,8 +9,9 @@
 class DistanceGraph {
 public:
     using DistArr = std::array<cv::Mat, Dir::COUNT>;
+    using PointArr = cv::Mat;
     using DirFunc = std::function<DistArr(const cv::Mat &)>;
-    using PointFunc = std::function<cv::Mat(const cv::Mat &)>;
+    using PointFunc = std::function<PointArr(const cv::Mat &, int)>;
 
 private:
     DistArr values;

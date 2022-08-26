@@ -77,3 +77,14 @@ std::array<cv::Mat, 8> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad) {
 
     return vals;
 }
+
+cv::Mat nonlinearGradient(const cv::Mat &grad) {
+    const double maxG =
+        *std::max_element(grad.begin<double>(), grad.end<double>());
+    const auto normG = grad / maxG;
+
+    cv::Mat expMat = normG.mul(normG) * -4.0;
+    cv::exp(expMat, expMat);
+
+    return expMat;
+}

@@ -20,7 +20,7 @@ void PaintArea::open(const QString &filePath) {
 
     cv::Mat temp = cv::imread(filePath.toStdString());
     cv::cvtColor(temp, imageGray, cv::COLOR_BGR2GRAY);
-    graph = DistanceGraph{ imageGray, basicCostFunc };
+    graph = DistanceGraph(imageGray, improvedCostFunc);
 }
 
 void PaintArea::save(const QString &filePath) {

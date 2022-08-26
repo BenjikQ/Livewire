@@ -30,6 +30,20 @@ DistanceGraph::DistArr basicCostFunc(const cv::Mat &img) {
     return dir;
 }
 
+cv::Mat improvedCostFunc(const cv::Mat &img, int formal) {
+    constexpr double gradWeight = 0.2;
+    constexpr double cannWeight = 0.3;
+    constexpr double nlgWeight = 0.5;
+
+    cv::Mat input, grad, canny, nlg;
+    input = gaussFilter(img);
+    grad = gradientSobel(input);
+    canny = edgesCanny(img);
+    nlg = nonlinearGradient(grad);
+
+    return grad * gradWeight + canny * cannWeight + nlg * nlgWeight;
+}
+
 std::array<cv::Mat, Dir::COUNT + 2> getDebugBlocks(cv::Point2i center,
                                                    int radius) {
     const cv::Point2i begin{ std::max(center.x - radius, 0),
