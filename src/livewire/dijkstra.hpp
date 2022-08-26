@@ -88,6 +88,7 @@ std::vector<Point> dijkstra(const Graph &graph, const Point &source,
 
     while (!queue.empty()) {
         const auto u = queue.extract();
+        if (u.positon == dest) break;
         for (const auto dir :
              detail::enum_range(Dir::RIGHT, Dir::BOTTOMRIGHT)) {
             const auto v = u.positon + dir;
