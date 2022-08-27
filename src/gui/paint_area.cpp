@@ -44,18 +44,21 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
-    if (!lastPoint.isNull()) {
-        const auto currentPoint = event->position().toPoint();
-        const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
-                                   { currentPoint.x(), currentPoint.y() });
-        lastEdge.clear();
-        lastEdge.reserve(path.size());
-        for (const auto point : path) {
-            lastEdge.push_back(
-                { static_cast<int>(point.x), static_cast<int>(point.y) });
-        }
-        update();
+    if (lastPoint.isNull()) return;
+
+    const auto currentPoint = event->position().toPoint();
+    if (currentPoint.x() >= image.width() || currentPoint.y() >= image.height())
+        return;
+
+    const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
+                               { currentPoint.x(), currentPoint.y() });
+    lastEdge.clear();
+    lastEdge.reserve(path.size());
+    for (const auto point : path) {
+        lastEdge.push_back(
+            { static_cast<int>(point.x), static_cast<int>(point.y) });
     }
+    update();
 }
 
 void PaintArea::paintEvent(QPaintEvent *event) {
