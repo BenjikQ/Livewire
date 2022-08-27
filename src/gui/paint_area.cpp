@@ -36,8 +36,10 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         QPainter painter(&image);
         painter.setPen(QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
-        lines.push_back({ lastPoint, currentPoint });
+        // lines.push_back({ lastPoint, currentPoint });
         lastPoint = currentPoint;
+        std::copy(lastEdge.cbegin(), lastEdge.cend(),
+                  std::back_inserter(fullPath));
         points.push_back(lastPoint);
         update();
     }
@@ -68,9 +70,9 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     painter.setPen(
         QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     QRect dirtyRect = event->rect();
-    if (lines.size() == 1) {
-        lines[0] = { lines[0].p2(), lines[0].p2() };
-    }
+    //    if (lines.size() == 1) {
+    //        lines[0] = { lines[0].p2(), lines[0].p2() };
+    //    }
     painter.drawImage(dirtyRect, image, dirtyRect);
     painter.drawPoints(points);
 
@@ -78,7 +80,8 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     penColor = Qt::blue;
     painter.setPen(
         QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    painter.drawLines(lines);
+    //     painter.drawLines(lines);
+    painter.drawPoints(fullPath);
     penWidth = 3;
     penColor = Qt::green;
     painter.setPen(

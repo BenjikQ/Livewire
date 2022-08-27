@@ -28,7 +28,8 @@ private:
     QPoint lastPoint;
     QList<QPoint> lastEdge;
     QList<QPoint> points;
-    QList<QLine> lines;
+    QList<QPoint> fullPath;
+    // QList<QLine> lines;
 };
 
 #endif  // PAINTAREA_HPP
