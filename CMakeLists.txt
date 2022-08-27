@@ -31,8 +31,6 @@ set(BENCHMARK_ENABLE_WERROR OFF)
 set(BENCHMARK_FORCE_WERROR OFF)
 FetchContent_MakeAvailable(Catch2 googlebenchmark)
 
-find_package(Boost REQUIRED)
-
 add_subdirectory(src)
 
 if(PROJECT_IS_TOP_LEVEL)

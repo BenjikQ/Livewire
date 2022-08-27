@@ -6,8 +6,7 @@ target_link_libraries(livewire
     PUBLIC
         opencv_core
         opencv_imgcodecs
-        opencv_imgproc
-        Boost::boost)
+        opencv_imgproc)
 target_include_directories(livewire PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_sources(livewire
     PRIVATE
