@@ -44,6 +44,8 @@ struct Point {
 
     constexpr Point operator-(Dir d) const { return operator+(-d); }
 
+    constexpr Point operator-() const { return { -x, -y }; }
+
     constexpr bool operator==(const Point &other) const {
         return x == other.x && y == other.y;
     }
@@ -51,9 +53,25 @@ struct Point {
     constexpr bool operator!=(const Point &other) const {
         return !(*this == other);
     }
+
+    constexpr static Point maxValue() {
+        constexpr int64_t maxval = std::numeric_limits<int64_t>::max();
+        return { maxval, maxval };
+    }
 };
 
 std::ostream &operator<<(std::ostream &ost, const Point &p);
+
+namespace std {
+
+template <>
+struct hash<Point> {
+    std::size_t operator()(const Point &k) const {
+        return (hash<int64_t>()(k.x) ^ (hash<int64_t>()(k.y) << 1));
+    }
+};
+
+}  // namespace std
 
 struct Node {
     Point p{}, prev{ -1, -1 };
