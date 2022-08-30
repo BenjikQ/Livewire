@@ -13,6 +13,7 @@ ImageViewer::ImageViewer(QWidget *parent) :
     ui(new Ui::ImageViewer) {
     ui->setupUi(this);
     new QShortcut(Qt::CTRL | Qt::Key_W, this, SLOT(close()));
+    new QShortcut(Qt::Key_Return, this, SLOT(closePath()));
     QSize size = this->size();
     statusBar()->showMessage(QString::number(size.width()) + " x " +
                              QString::number(size.height()) + " piks.");
@@ -48,3 +49,5 @@ void ImageViewer::save() {
                                      tr("Image Files (*.png *.jpg *.bmp)"));
     if (!filePath.isEmpty()) paintArea->save(filePath);
 }
+
+void ImageViewer::closePath() { paintArea->finalizePath(); }

@@ -28,6 +28,9 @@ constexpr Dir operator++(Dir &d) { return d = d + 1; }
 struct Point {
     int64_t x, y;
 
+    constexpr Point() = default;
+    constexpr Point(int64_t x, int64_t y) : x(x), y(y) {}
+
     constexpr Point operator+(Dir d) const {
         switch (d) {
         case Dir::RIGHT: return { x + 1, y };
@@ -57,6 +60,11 @@ struct Point {
     constexpr static Point maxValue() {
         constexpr int64_t maxval = std::numeric_limits<int64_t>::max();
         return { maxval, maxval };
+    }
+
+    template <typename T>
+    static Point from(const T &val) {
+        return { val.x(), val.y() };
     }
 };
 

@@ -28,6 +28,24 @@ void PaintArea::save(const QString &filePath) {
     writer.write(image);
 }
 
+void PaintArea::finalizePath() {
+    if (points.size() <= 1) return;
+
+    const auto finalEdge = dijkstra(graph, Point::from(points.front()),
+                                    Point::from(points.back()));
+    setLastEdge(finalEdge);
+    std::copy(lastEdge.cbegin(), lastEdge.cend(),
+              std::back_inserter(currentPath));
+
+    previousPaths.push_back(currentPath);
+    currentPath.clear();
+    lastEdge.clear();
+    points.clear();
+    lastPoint = {};
+
+    update();
+}
+
 void PaintArea::mousePressEvent(QMouseEvent *event) {
     if (event->buttons() & Qt::LeftButton) {
         const auto currentPoint = event->position().toPoint();
@@ -39,10 +57,11 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         // lines.push_back({ lastPoint, currentPoint });
         lastPoint = currentPoint;
         std::copy(lastEdge.cbegin(), lastEdge.cend(),
-                  std::back_inserter(fullPath));
+                  std::back_inserter(currentPath));
         points.push_back(lastPoint);
-        update();
+    } else if (event->buttons() & Qt::RightButton) {
     }
+    update();
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
@@ -54,37 +73,35 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event) {
 
     const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
                                { currentPoint.x(), currentPoint.y() });
+    setLastEdge(path);
+    update();
+}
+
+void PaintArea::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    QRect dirtyRect = event->rect();
+
+    painter.drawImage(dirtyRect, image, dirtyRect);
+
+    painter.setPen(pens.point);
+    painter.drawPoints(points);
+
+    painter.setPen(pens.currentPath);
+    painter.drawPoints(currentPath);
+
+    painter.setPen(pens.currentEdge);
+    painter.drawPoints(lastEdge);
+
+    painter.setPen(pens.previousPath);
+    for (const auto &points : previousPaths)
+        painter.drawPoints(points);
+}
+
+void PaintArea::setLastEdge(const std::vector<Point> &path) {
     lastEdge.clear();
     lastEdge.reserve(path.size());
     for (const auto point : path) {
         lastEdge.push_back(
             { static_cast<int>(point.x), static_cast<int>(point.y) });
     }
-    update();
-}
-
-void PaintArea::paintEvent(QPaintEvent *event) {
-    QColor penColor = Qt::red;
-    int penWidth = 10;
-    QPainter painter(this);
-    painter.setPen(
-        QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    QRect dirtyRect = event->rect();
-    //    if (lines.size() == 1) {
-    //        lines[0] = { lines[0].p2(), lines[0].p2() };
-    //    }
-    painter.drawImage(dirtyRect, image, dirtyRect);
-    painter.drawPoints(points);
-
-    penWidth = 2;
-    penColor = Qt::blue;
-    painter.setPen(
-        QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    //     painter.drawLines(lines);
-    painter.drawPoints(fullPath);
-    penWidth = 3;
-    penColor = Qt::green;
-    painter.setPen(
-        QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    painter.drawPoints(lastEdge);
 }

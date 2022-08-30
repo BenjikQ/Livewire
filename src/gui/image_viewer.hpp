@@ -21,6 +21,7 @@ public:
 private slots:
     void open();
     void save();
+    void closePath();
 
 private:
     void loadImage(const QString &filePath);
