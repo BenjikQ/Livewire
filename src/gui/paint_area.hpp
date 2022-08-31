@@ -33,6 +33,7 @@ private:
     QList<QPoint> points;
     QList<QPoint> currentPath;
     std::vector<QList<QPoint>> previousPaths;
+    // QList<QPoint> region;
     std::vector<bool> region;
 
     const struct {
@@ -43,10 +44,13 @@ private:
                           Qt::RoundJoin };
         QPen previousPath{ Qt::magenta, 2, Qt::SolidLine, Qt::RoundCap,
                            Qt::RoundJoin };
-        QBrush region{ QColor(200, 200, 200, 40) };
+        QPen region{ QColor(255, 255, 255, 40), 1, Qt::SolidLine, Qt::RoundCap,
+                     Qt::RoundJoin };
     } pens;
 
     void setLastEdge(const std::vector<Point> &path);
+    PathData getConfirmedPoints() const;
+    void floodFillRegion(const PathData &pd, Point origin);
 };
 
 #endif  // PAINTAREA_HPP

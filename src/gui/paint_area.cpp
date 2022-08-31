@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <queue>
 
 #include "cost_functions.hpp"
 #include "dijkstra.hpp"
@@ -21,6 +22,7 @@ void PaintArea::open(const QString &filePath) {
     cv::Mat temp = cv::imread(filePath.toStdString());
     cv::cvtColor(temp, imageGray, cv::COLOR_BGR2GRAY);
     graph = DistanceGraph(imageGray, improvedCostFunc);
+    region = std::vector<bool>(image.width() * image.height(), false);
 }
 
 void PaintArea::save(const QString &filePath) {
@@ -60,6 +62,11 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
                   std::back_inserter(currentPath));
         points.push_back(lastPoint);
     } else if (event->buttons() & Qt::RightButton) {
+        const auto pd = getConfirmedPoints();
+        if (!pd.pts.empty()) {
+            const auto p = event->position().toPoint();
+            floodFillRegion(pd, { p.x(), p.y() });
+        }
     }
     update();
 }
@@ -95,6 +102,15 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     painter.setPen(pens.previousPath);
     for (const auto &points : previousPaths)
         painter.drawPoints(points);
+
+    painter.setPen(pens.region);
+    for (std::size_t x = 0; x < image.width(); ++x) {
+        for (std::size_t y = 0; y < image.height(); ++y) {
+            if (region[y * image.width() + x]) {
+                painter.drawPoint(QPoint{ x, y });
+            }
+        }
+    }
 }
 
 void PaintArea::setLastEdge(const std::vector<Point> &path) {
@@ -104,4 +120,71 @@ void PaintArea::setLastEdge(const std::vector<Point> &path) {
         lastEdge.push_back(
             { static_cast<int>(point.x), static_cast<int>(point.y) });
     }
+}
+
+PathData PaintArea::getConfirmedPoints() const {
+    PathData data{ Point::maxValue(), -Point::maxValue(), {} };
+
+    for (const auto &path : previousPaths) {
+        for (const auto &point : path) {
+            data.topLeft.x =
+                std::min(data.topLeft.x, static_cast<int64_t>(point.x()));
+            data.topLeft.y =
+                std::min(data.topLeft.y, static_cast<int64_t>(point.y()));
+            data.bottomRight.x =
+                std::max(data.bottomRight.x, static_cast<int64_t>(point.x()));
+            data.bottomRight.y =
+                std::max(data.bottomRight.y, static_cast<int64_t>(point.y()));
+            data.pts.insert(Point::from(point));
+        }
+    }
+
+    return data;
+}
+
+void PaintArea::floodFillRegion(const PathData &pd, Point origin) {
+    const auto w = image.width();
+    const auto h = image.height();
+    const auto index = [=](const Point &p) -> int64_t { return p.y * w + p.x; };
+    if (index(origin) >= region.size()) return;
+    const bool fillValue = !region[index(origin)];
+
+    Point cur, adj;
+    std::queue<Point> to_visit{};
+    to_visit.push(origin);
+
+    while (!to_visit.empty()) {
+        cur = to_visit.front();
+        to_visit.pop();
+
+        for (Dir d{}; d < Dir::COUNT; d += 2) {
+            adj = cur + d;
+            if (adj.x >= 0 && adj.y >= 0 && adj.x < w && adj.y < h &&
+                region[index(adj)] != fillValue && !pd.pts.contains(adj)) {
+                to_visit.push(adj);
+                region[index(adj)] = fillValue;
+            }
+        }
+    }
+    /*
+        Pos<int32_t> cur;
+                const Color target = pixel(x, y);
+                if (color == target)
+                        return;
+                std::queue<Pos<int32_t>> to_visit{};
+
+                drawPixel(x, y, color);
+                to_visit.push({ x,y });
+                while (!to_visit.empty()) {
+                        cur = to_visit.front();
+                        to_visit.pop();
+
+                        for (const auto &pos : cur.neighbors()) {
+                                if (validPos(pos.x, pos.y) && pixel(pos.x,
+       pos.y) == target) { to_visit.push(pos); drawPixel(pos.x, pos.y,
+       color);
+                                }
+                        }
+                }
+*/
 }

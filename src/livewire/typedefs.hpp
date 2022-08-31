@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <unordered_set>
 #include <vector>
 
 constexpr double INF = std::numeric_limits<double>::infinity();
@@ -24,6 +25,7 @@ constexpr Dir operator+(Dir d, int n) { return Dir(int(d) + n); }
 constexpr Dir operator-(Dir d, int n) { return d + (-n); }
 constexpr Dir operator-(Dir d) { return d + 4; }
 constexpr Dir operator++(Dir &d) { return d = d + 1; }
+constexpr Dir operator+=(Dir &d, int x) { return d = d + x; }
 
 struct Point {
     int64_t x, y;
@@ -80,6 +82,11 @@ struct hash<Point> {
 };
 
 }  // namespace std
+
+struct PathData {
+    Point topLeft, bottomRight;
+    std::unordered_set<Point> pts;
+};
 
 struct Node {
     Point p{}, prev{ -1, -1 };
