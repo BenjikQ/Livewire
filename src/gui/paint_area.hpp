@@ -44,7 +44,7 @@ private:
                           Qt::RoundJoin };
         QPen previousPath{ Qt::magenta, 2, Qt::SolidLine, Qt::RoundCap,
                            Qt::RoundJoin };
-        QPen region{ QColor(255, 255, 255, 40), 1, Qt::SolidLine, Qt::RoundCap,
+        QPen region{ QColor(255, 90, 255, 50), 1, Qt::SolidLine, Qt::RoundCap,
                      Qt::RoundJoin };
     } pens;
 

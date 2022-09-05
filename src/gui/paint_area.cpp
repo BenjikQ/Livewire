@@ -26,8 +26,16 @@ void PaintArea::open(const QString &filePath) {
 }
 
 void PaintArea::save(const QString &filePath) {
+    static const QColor empty{ 0, 0, 0, 0 };
     QImageWriter writer(filePath);
-    writer.write(image);
+    QImage resultImage = image;
+
+    for (int y = 0; y < image.height(); ++y)
+        for (int x = 0; x < image.width(); ++x)
+            if (!region[image.width() * y + x])
+                resultImage.setPixelColor(x, y, empty);
+
+    writer.write(resultImage);
 }
 
 void PaintArea::finalizePath() {
@@ -104,8 +112,8 @@ void PaintArea::paintEvent(QPaintEvent *event) {
         painter.drawPoints(points);
 
     painter.setPen(pens.region);
-    for (std::size_t x = 0; x < image.width(); ++x) {
-        for (std::size_t y = 0; y < image.height(); ++y) {
+    for (int x = 0; x < image.width(); ++x) {
+        for (int y = 0; y < image.height(); ++y) {
             if (region[y * image.width() + x]) {
                 painter.drawPoint(QPoint{ x, y });
             }
@@ -166,25 +174,4 @@ void PaintArea::floodFillRegion(const PathData &pd, Point origin) {
             }
         }
     }
-    /*
-        Pos<int32_t> cur;
-                const Color target = pixel(x, y);
-                if (color == target)
-                        return;
-                std::queue<Pos<int32_t>> to_visit{};
-
-                drawPixel(x, y, color);
-                to_visit.push({ x,y });
-                while (!to_visit.empty()) {
-                        cur = to_visit.front();
-                        to_visit.pop();
-
-                        for (const auto &pos : cur.neighbors()) {
-                                if (validPos(pos.x, pos.y) && pixel(pos.x,
-       pos.y) == target) { to_visit.push(pos); drawPixel(pos.x, pos.y,
-       color);
-                                }
-                        }
-                }
-*/
 }
