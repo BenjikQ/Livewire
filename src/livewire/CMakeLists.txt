@@ -1,7 +1,5 @@
 find_package(OpenCV REQUIRED)
 
-message(STATUS "XXX: ${OpenCV_DIR}")
-
 add_library(livewire)
 
 target_link_libraries(livewire
@@ -17,9 +15,11 @@ target_sources(livewire
         image_graph.cpp
         typedefs.cpp
         utils.cpp
+        regions.cpp
     PUBLIC
         cost_functions.hpp
         dijkstra.hpp
         image_graph.hpp
         typedefs.hpp
-        utils.hpp)
+        utils.hpp
+        regions.hpp)

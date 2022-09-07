@@ -20,14 +20,14 @@ int main(int argc, char *argv[]) {
     cv::Mat testImg = getTestImage(input);
     DistanceGraph graph{ testImg, basicCostFunc };
     auto path = dijkstra(graph, { 20, 0 }, { 0, 20 });
-    //    for (const auto &x : path)
-    //        std::cout << x << "  ";
-    //    const auto [c0, c1, c2, c3] = basicCostFunc(testImg);
-    //    cv::Mat m[4];
-    //    m[0] = getTestImage(input);
-    //    m[1] = gaussFilter(m[0]);
-    //    m[2] = gradientSobel(m[1]);
-    //    auto dc = dirCosts(m[0], m[2]);
+    //     for (const auto &x : path)
+    //         std::cout << x << "  ";
+    //     const auto [c0, c1, c2, c3] = basicCostFunc(testImg);
+    //     cv::Mat m[4];
+    //     m[0] = getTestImage(input);
+    //     m[1] = gaussFilter(m[0]);
+    //     m[2] = gradientSobel(m[1]);
+    //     auto dc = dirCosts(m[0], m[2]);
 
     //    cv::imshow("a", c0);
     //    cv::imshow("b", c1);

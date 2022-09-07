@@ -1,2 +1,2 @@
-add_executable(extras image_processing.cpp)
-target_link_libraries(extras PRIVATE livewire)
+add_executable(image_processing image_processing.cpp)
+target_link_libraries(image_processing PRIVATE livewire)

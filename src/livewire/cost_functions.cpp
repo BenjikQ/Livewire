@@ -2,7 +2,11 @@
 
 #include "utils.hpp"
 
-DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img) {
+constexpr bool enableDebugData = true;
+cv::Mat debugLastGrad, debugLastLzc;
+DistanceGraph::DistArr debugLastDir;
+
+DistanceGraph::DistArr basicCostFunc(const cv::Mat &img) {
     constexpr double gradWeight = 0.4;
     constexpr double lzcWeight = 0.4;
     constexpr double dirWeight = 0.2;
@@ -14,10 +18,47 @@ DistanceGraph::DistQuad basicCostFunc(const cv::Mat &img) {
     grad_p_lzc = (1 - grad) * gradWeight + lzc * lzcWeight;
     auto dir = dirCosts(img, grad);
 
-    for (int i = 0; i < 4; ++i)
-        dir[i] = dir[i] * dirWeight;
-    for (int i = 0; i < 4; ++i)
-        dir[i] = dir[i] + grad_p_lzc({ 0, 0, dir[i].cols, dir[i].rows });
+    if constexpr (enableDebugData) {
+        debugLastGrad = 1 - grad;
+        debugLastLzc = lzc;
+        debugLastDir = dir;
+    }
 
-    return { dir[0], dir[1], dir[2], dir[3] };
+    for (int i = 0; i < dir.size(); ++i)
+        dir[i] = dir[i] * dirWeight + grad_p_lzc;
+
+    return dir;
+}
+
+cv::Mat improvedCostFunc(const cv::Mat &img, int formal) {
+    constexpr double gradWeight = 0.2;
+    constexpr double cannWeight = 0.3;
+    constexpr double nlgWeight = 0.5;
+
+    cv::Mat input, grad, canny, nlg;
+    input = gaussFilter(img);
+    grad = gradientSobel(input);
+    canny = edgesCanny(img);
+    nlg = nonlinearGradient(grad);
+
+    return grad * gradWeight + canny * cannWeight + nlg * nlgWeight;
+}
+
+std::array<cv::Mat, Dir::COUNT + 2> getDebugBlocks(cv::Point2i center,
+                                                   int radius) {
+    const cv::Point2i begin{ std::max(center.x - radius, 0),
+                             std::max(center.y - radius, 0) };
+    const cv::Point2i end{ std::min(center.x + radius, debugLastGrad.cols - 1),
+                           std::min(center.y + radius,
+                                    debugLastGrad.rows - 1) };
+    const cv::Rect rect{ begin.x, begin.y, end.x - begin.x, end.y - begin.y };
+
+    std::array<cv::Mat, 10> blocks{};
+
+    blocks[0] = debugLastGrad(rect);
+    blocks[1] = debugLastLzc(rect);
+    for (uint i = 0; i < debugLastDir.size(); ++i)
+        blocks[i + 2] = debugLastDir[i](rect);
+
+    return blocks;
 }

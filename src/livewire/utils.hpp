@@ -11,7 +11,7 @@ cv::Mat gaussFilter(const cv::Mat &mat);
 cv::Mat laplacianZeroCrossing(const cv::Mat &blurred);
 cv::Mat gradientSobel(const cv::Mat &blurred);
 cv::Mat edgesCanny(const cv::Mat &img);
-
-std::array<cv::Mat, 4> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad);
+cv::Mat nonlinearGradient(const cv::Mat &grad);
+std::array<cv::Mat, 8> dirCosts(const cv::Mat &imgui8, const cv::Mat &grad);
 
 #endif  // UTILS_HPP

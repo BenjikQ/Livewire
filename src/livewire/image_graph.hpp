@@ -8,40 +8,24 @@
 
 class DistanceGraph {
 public:
-    using DistQuad = std::tuple<cv::Mat, cv::Mat, cv::Mat, cv::Mat>;
-    using Func = std::function<DistQuad(const cv::Mat &)>;
+    using DistArr = std::array<cv::Mat, Dir::COUNT>;
+    using PointArr = cv::Mat;
+    using DirFunc = std::function<DistArr(const cv::Mat &)>;
+    using PointFunc = std::function<PointArr(const cv::Mat &, int)>;
 
 private:
-    cv::Mat vert, horiz, pdiag, ndiag;
+    DistArr values;
+    bool directional;
 
 public:
     DistanceGraph() = default;
+    DistanceGraph(const cv::Mat &imageLuminance, PointFunc distanceFunc);
+    DistanceGraph(const cv::Mat &imageLuminance, DirFunc distanceFunc);
 
-    DistanceGraph(const cv::Mat &imageLuminance, Func distanceFunc) {
-        const auto [vert_, horiz_, pdiag_, ndiag_] =
-            distanceFunc(imageLuminance);
-        vert = vert_;
-        horiz = horiz_;
-        pdiag = pdiag_;
-        ndiag = ndiag_;
-    }
+    int64_t w() const { return values[0].cols; }
+    int64_t h() const { return values[0].rows; }
 
-    int64_t w() const { return vert.cols; }
-    int64_t h() const { return horiz.rows; }
-
-    double distance(const Point &p, Dir d) const {
-        switch (d) {
-        case Dir::RIGHT: return horiz.at<double>(p.y, p.x);
-        case Dir::LEFT: return horiz.at<double>(p.y, p.x - 1);
-        case Dir::TOPRIGHT: return pdiag.at<double>(p.y - 1, p.x);
-        case Dir::BOTTOMLEFT: return pdiag.at<double>(p.y, p.x - 1);
-        case Dir::TOP: return vert.at<double>(p.y - 1, p.x);
-        case Dir::BOTTOM: return vert.at<double>(p.y, p.x);
-        case Dir::TOPLEFT: return ndiag.at<double>(p.y - 1, p.x - 1);
-        case Dir::BOTTOMRIGHT: return ndiag.at<double>(p.y, p.x);
-        default: return INF;
-        }
-    }
+    double distance(const Point &p, Dir d = {}) const;
 };
 
 #endif  // IMAGE_GRAPH_HPP
