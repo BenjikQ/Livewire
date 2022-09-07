@@ -15,6 +15,7 @@ public:
 
     void open(const QString &filePath);
     void save(const QString &filePath);
+    void undo();
 
     void finalizePath();
 
@@ -32,7 +33,8 @@ private:
     QList<QPoint> lastEdge;
     QList<QPoint> points;
     QList<QPoint> currentPath;
-    std::vector<QList<QPoint>> previousPaths;
+    QList<QList<QPoint>> previousPaths;
+    QList<int> pathsLengths;
     // QList<QPoint> region;
     std::vector<bool> region;
 

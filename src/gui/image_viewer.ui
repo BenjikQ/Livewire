@@ -101,7 +101,14 @@ QMenu:item:selected
     <addaction name="openFileAction"/>
     <addaction name="saveAsAction"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="undoAction"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openFileAction">
@@ -118,6 +125,14 @@ QMenu:item:selected
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="undoAction">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
  </widget>
@@ -155,9 +170,26 @@ QMenu:item:selected
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>undoAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>undo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open()</slot>
   <slot>save()</slot>
+  <slot>undo()</slot>
  </slots>
 </ui>

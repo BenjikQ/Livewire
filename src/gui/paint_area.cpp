@@ -38,6 +38,30 @@ void PaintArea::save(const QString &filePath) {
     writer.write(resultImage);
 }
 
+void PaintArea::undo() {
+    if (!points.isEmpty()) {
+        points.removeLast();
+        if (points.isEmpty()) {
+            lastPoint = {};
+            lastEdge.clear();
+        } else {
+            // Remove last saved path
+            const auto len = pathsLengths.last();
+            const auto index = currentPath.size() - len;
+            currentPath.remove(index, len);
+            pathsLengths.removeLast();
+
+            lastPoint = points.last();
+            const auto currentPoint = QWidget::mapFromGlobal(QCursor::pos());
+            const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
+                                       { currentPoint.x(), currentPoint.y() });
+            setLastEdge(path);
+        }
+    }
+
+    update();
+}
+
 void PaintArea::finalizePath() {
     if (points.size() <= 1) return;
 
@@ -66,8 +90,12 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
                             Qt::RoundJoin));
         // lines.push_back({ lastPoint, currentPoint });
         lastPoint = currentPoint;
-        std::copy(lastEdge.cbegin(), lastEdge.cend(),
-                  std::back_inserter(currentPath));
+        currentPath.append(lastEdge.cbegin(), lastEdge.cend());
+        //        std::copy(lastEdge.cbegin(), lastEdge.cend(),
+        //                  std::back_inserter(currentPath));
+        if (!lastEdge.empty()) {
+            pathsLengths.push_back(lastEdge.size());
+        }
         points.push_back(lastPoint);
     } else if (event->buttons() & Qt::RightButton) {
         const auto pd = getConfirmedPoints();

@@ -51,3 +51,5 @@ void ImageViewer::save() {
 }
 
 void ImageViewer::closePath() { paintArea->finalizePath(); }
+
+void ImageViewer::undo() { paintArea->undo(); }
