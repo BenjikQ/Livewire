@@ -1,9 +1,12 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+#include <QImage>
 #include <QMainWindow>
 
-#include "paint_area.hpp"
+QT_BEGIN_NAMESPACE
+class QString;
+QT_END_NAMESPACE
 
 // clang-format off
 namespace Ui { class MainWindow; }
@@ -21,7 +24,8 @@ private slots:
 
 private:
     Ui::MainWindow *m_ui;
-    PaintArea *m_paintArea;
+
+    QImage m_image;
 };
 
 #endif  // MAIN_WINDOW_HPP

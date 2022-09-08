@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QFileDialog>
+#include <QImageReader>
 #include <QList>
 #include <QStandardPaths>
 #include <QString>
@@ -9,16 +10,12 @@
 #include "ui_main_window.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    m_ui(new Ui::MainWindow),
-    m_paintArea(new PaintArea(this)) {
+    QMainWindow{ parent },
+    m_ui{ new Ui::MainWindow } {
     m_ui->setupUi(this);
-    m_ui->scrollArea->setVisible(false);
-    m_ui->scrollArea->setWidget(m_paintArea);
 }
 
 MainWindow::~MainWindow() {
-    delete m_paintArea;
     delete m_ui;
 }
 
@@ -30,7 +27,10 @@ void MainWindow::open() {
 
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
-        m_paintArea->open(filePath);
-        m_ui->scrollArea->setVisible(true);
+        QImageReader reader{ filePath };
+        m_image = reader.read();
+        setMouseTracking(true);
+        m_ui->imageLabel->setPixmap(QPixmap::fromImage(m_image));
+        m_ui->imageLabel->adjustSize();
     }
 }
