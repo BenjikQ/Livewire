@@ -27,4 +27,5 @@ IndentCaseLabels: 'false'
 IndentWidth: '4'
 MaxEmptyLinesToKeep: '2'
 PackConstructorInitializers: 'Never'
+PointerAlignment: 'Right'
 ...

@@ -5,7 +5,9 @@ qt_add_executable(main
   main.cpp
   main_window.ui
   main_window.cpp
-  main_window.hpp)
+  main_window.hpp
+  paint_area.cpp
+  paint_area.hpp)
 target_link_libraries(main
   PRIVATE
     livewire

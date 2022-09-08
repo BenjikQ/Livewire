@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include "paint_area.hpp"
+
 // clang-format off
 namespace Ui { class MainWindow; }
 // clang-format on
@@ -14,8 +16,12 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void open();
+
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *m_ui;
+    PaintArea *m_paintArea;
 };
 
 #endif  // MAIN_WINDOW_HPP
