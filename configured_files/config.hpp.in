@@ -1,0 +1,12 @@
+#ifndef CONFIG_HPP_IN
+#define CONFIG_HPP_IN
+
+#include <string_view>
+
+static constexpr std::string_view PROJECT_NAME{ "@PROJECT_NAME@" };
+static constexpr std::string_view PROJECT_VERSION{ "@PROJECT_VERSION@" };
+static constexpr int PROJECT_VERSION_MAJOR{ @PROJECT_VERSION_MAJOR@ };
+static constexpr int PROJECT_VERSION_MINOR{ @PROJECT_VERSION_MINOR@ };
+static constexpr int PROJECT_VERSION_PATCH{ @PROJECT_VERSION_PATCH@ };
+
+#endif  // CONFIG_HPP_IN

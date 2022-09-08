@@ -3,13 +3,28 @@ BasedOnStyle: Google
 AccessModifierOffset: '-4'
 AlignConsecutiveMacros: 'true'
 AllowShortCaseLabelsOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: 'Inline'
 AllowShortLoopsOnASingleLine: 'false'
 AlwaysBreakBeforeMultilineStrings: 'false'
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
+ColumnLimit: '120'
 Cpp11BracedListStyle: 'false'
+IncludeCategories:
+  - Regex: '<Q.*>' # Qt headers
+    Priority: 2
+    SortPriority: 2
+    CaseSensitive: true
+  - Regex: '<[^\.]*>' # C++ standard library headers (without file extension)
+    Priority: 1
+    SortPriority: 1
+    CaseSensitive: true
+  - Regex: '".*"' # Project headers (third party libraries should be included using <>)
+    Priority: 3
+    SortPriority: 3
+    CaseSensitive: true
 IndentCaseLabels: 'false'
 IndentWidth: '4'
 MaxEmptyLinesToKeep: '2'
-
+PackConstructorInitializers: 'Never'
 ...
