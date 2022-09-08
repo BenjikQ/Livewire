@@ -5,8 +5,11 @@
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
+class QGraphicsView;
 class QString;
 QT_END_NAMESPACE
+
+class DiagramScene;
 
 // clang-format off
 namespace Ui { class MainWindow; }
@@ -26,6 +29,8 @@ private:
     Ui::MainWindow *m_ui;
 
     QImage m_image;
+
+    DiagramScene *m_scene;
 };
 
 #endif  // MAIN_WINDOW_HPP

@@ -2,17 +2,21 @@
 
 #include <QDir>
 #include <QFileDialog>
+#include <QGraphicsView>
 #include <QImageReader>
 #include <QList>
 #include <QStandardPaths>
 #include <QString>
 
+#include "diagram_scene.hpp"
 #include "ui_main_window.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
-    m_ui{ new Ui::MainWindow } {
+    m_ui{ new Ui::MainWindow },
+    m_scene{ new DiagramScene(this) } {
     m_ui->setupUi(this);
+    m_ui->view->setScene(m_scene);
 }
 
 MainWindow::~MainWindow() {
@@ -27,10 +31,11 @@ void MainWindow::open() {
 
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
+        m_scene->clear();
         QImageReader reader{ filePath };
         m_image = reader.read();
-        setMouseTracking(true);
-        m_ui->imageLabel->setPixmap(QPixmap::fromImage(m_image));
-        m_ui->imageLabel->adjustSize();
+        m_scene->addPixmap(QPixmap::fromImage(m_image));
+        m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
+        m_scene->enableDrawing(true);
     }
 }
