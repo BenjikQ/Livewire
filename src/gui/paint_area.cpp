@@ -39,12 +39,9 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
         resultImage.fill(empty);
     }
 
-    if (opts.savePath) {
-        // TODO: copy path to resultImage
-    }
-
-    if (opts.savePoints) {
-        // TODO: copy points to resultImage
+    if (opts.savePath || opts.savePoints) {
+        QPainter painter(&resultImage);
+        paintPathComponents(painter, false, opts.savePath, opts.savePoints);
     }
 
     writer.write(resultImage);
@@ -88,13 +85,16 @@ void PaintArea::finalizePath() {
     const auto finalEdge = dijkstra(graph, Point::from(points.front()),
                                     Point::from(points.back()));
     setLastEdge(finalEdge);
-    std::copy(lastEdge.cbegin(), lastEdge.cend(),
-              std::back_inserter(currentPath));
 
-    previousPaths.push_back(currentPath);
-    currentPath.clear();
+    // TODO: maybe fix copypaste
+    currentPath.append(lastEdge.cbegin(), lastEdge.cend());
+    if (!lastEdge.empty()) {
+        pathsLengths.push_back(lastEdge.size());
+        pathsWidths.push_back(pens.currentEdge.width());
+        pathsColors.push_back(pens.currentEdge.color());
+    }
+
     lastEdge.clear();
-    points.clear();
     lastPoint = {};
 
     update();
@@ -144,43 +144,44 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     QRect dirtyRect = event->rect();
 
     painter.drawImage(dirtyRect, image, dirtyRect);
+    paintPathComponents(painter);
 
-    painter.setPen(pens.point);
-    painter.drawPoints(points);
+    //    painter.setPen(pens.point);
+    //    painter.drawPoints(points);
 
-    //    painter.setPen(pens.currentPath);
-    //    painter.drawPoints(currentPath);
+    //    //    painter.setPen(pens.currentPath);
+    //    //    painter.drawPoints(currentPath);
 
-    int start = 0;
-    for (int i = 0; i < pathsWidths.size(); ++i) {
-        const auto width = pathsWidths[i];
-        const auto length = pathsLengths[i];
-        const auto color = pathsColors[i];
-        const auto &path =
-            QList<QPoint>{ currentPath.begin() + start,
-                           currentPath.begin() + start + length };
-        pens.currentPath.setWidth(width);
-        pens.currentPath.setColor(color);
-        painter.setPen(pens.currentPath);
-        painter.drawPoints(path);
-        start += length;
-    }
+    //    int start = 0;
+    //    for (int i = 0; i < pathsWidths.size(); ++i) {
+    //        const auto width = pathsWidths[i];
+    //        const auto length = pathsLengths[i];
+    //        const auto color = pathsColors[i];
+    //        const auto &path =
+    //            QList<QPoint>{ currentPath.begin() + start,
+    //                           currentPath.begin() + start + length };
+    //        pens.currentPath.setWidth(width);
+    //        pens.currentPath.setColor(color);
+    //        painter.setPen(pens.currentPath);
+    //        painter.drawPoints(path);
+    //        start += length;
+    //    }
 
-    painter.setPen(pens.currentEdge);
-    painter.drawPoints(lastEdge);
+    //    painter.setPen(pens.currentEdge);
+    //    painter.drawPoints(lastEdge);
 
-    //    painter.setPen(pens.previousPath);
-    //    for (const auto &points : previousPaths)
-    //        painter.drawPoints(points);
+    //    //    painter.setPen(pens.previousPath);
+    //    //    for (const auto &points : previousPaths)
+    //    //        painter.drawPoints(points);
 
-    painter.setPen(pens.region);
-    for (int x = 0; x < image.width(); ++x) {
-        for (int y = 0; y < image.height(); ++y) {
-            if (region[y * image.width() + x]) {
-                painter.drawPoint(QPoint{ x, y });
-            }
-        }
-    }
+    //    painter.setPen(pens.region);
+    //    for (int x = 0; x < image.width(); ++x) {
+    //        for (int y = 0; y < image.height(); ++y) {
+    //            if (region[y * image.width() + x]) {
+    //                painter.drawPoint(QPoint{ x, y });
+    //            }
+    //        }
+    //    }
 }
 
 void PaintArea::setLastEdge(const std::vector<Point> &path) {
@@ -195,19 +196,19 @@ void PaintArea::setLastEdge(const std::vector<Point> &path) {
 PathData PaintArea::getConfirmedPoints() const {
     PathData data{ Point::maxValue(), -Point::maxValue(), {} };
 
-    for (const auto &path : previousPaths) {
-        for (const auto &point : path) {
-            data.topLeft.x =
-                std::min(data.topLeft.x, static_cast<int64_t>(point.x()));
-            data.topLeft.y =
-                std::min(data.topLeft.y, static_cast<int64_t>(point.y()));
-            data.bottomRight.x =
-                std::max(data.bottomRight.x, static_cast<int64_t>(point.x()));
-            data.bottomRight.y =
-                std::max(data.bottomRight.y, static_cast<int64_t>(point.y()));
-            data.pts.insert(Point::from(point));
-        }
+    // for (const auto &path : previousPaths) {
+    for (const auto &point : currentPath) {
+        data.topLeft.x =
+            std::min(data.topLeft.x, static_cast<int64_t>(point.x()));
+        data.topLeft.y =
+            std::min(data.topLeft.y, static_cast<int64_t>(point.y()));
+        data.bottomRight.x =
+            std::max(data.bottomRight.x, static_cast<int64_t>(point.x()));
+        data.bottomRight.y =
+            std::max(data.bottomRight.y, static_cast<int64_t>(point.y()));
+        data.pts.insert(Point::from(point));
     }
+    //}
 
     return data;
 }
@@ -233,6 +234,45 @@ void PaintArea::floodFillRegion(const PathData &pd, Point origin) {
                 region[index(adj)] != fillValue && !pd.pts.contains(adj)) {
                 to_visit.push(adj);
                 region[index(adj)] = fillValue;
+            }
+        }
+    }
+}
+
+void PaintArea::paintPathComponents(QPainter &painter, bool paintCurrent,
+                                    bool paintPath, bool paintPoints) {
+    if (paintPath) {
+        int start = 0;
+        for (int i = 0; i < pathsWidths.size(); ++i) {
+            const auto width = pathsWidths[i];
+            const auto length = pathsLengths[i];
+            const auto color = pathsColors[i];
+            const auto &path =
+                QList<QPoint>{ currentPath.begin() + start,
+                               currentPath.begin() + start + length };
+            pens.currentPath.setWidth(width);
+            pens.currentPath.setColor(color);
+            painter.setPen(pens.currentPath);
+            painter.drawPoints(path);
+            start += length;
+        }
+    }
+
+    if (paintPoints) {
+        painter.setPen(pens.point);
+        painter.drawPoints(points);
+    }
+
+    if (paintCurrent) {
+        painter.setPen(pens.currentEdge);
+        painter.drawPoints(lastEdge);
+
+        painter.setPen(pens.region);
+        for (int x = 0; x < image.width(); ++x) {
+            for (int y = 0; y < image.height(); ++y) {
+                if (region[y * image.width() + x]) {
+                    painter.drawPoint(QPoint{ x, y });
+                }
             }
         }
     }
