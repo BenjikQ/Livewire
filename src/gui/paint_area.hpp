@@ -15,6 +15,10 @@ public:
 
     void open(const QString &filePath);
     void save(const QString &filePath, SaveOptions opts);
+    void undo();
+
+    void setPenWidth(int width);
+    void setPenColor(const QColor &color);
 
     void finalizePath();
 
@@ -32,11 +36,14 @@ private:
     QList<QPoint> lastEdge;
     QList<QPoint> points;
     QList<QPoint> currentPath;
-    std::vector<QList<QPoint>> previousPaths;
+    QList<QList<QPoint>> previousPaths;
+    QList<int> pathsLengths;
+    QList<int> pathsWidths;
+    QList<QColor> pathsColors;
     // QList<QPoint> region;
     std::vector<bool> region;
 
-    const struct {
+    struct {
         QPen point{ Qt::red, 10, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin };
         QPen currentEdge{ Qt::green, 3, Qt::SolidLine, Qt::RoundCap,
                           Qt::RoundJoin };

@@ -50,6 +50,38 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
     writer.write(resultImage);
 }
 
+void PaintArea::undo() {
+    if (!points.isEmpty()) {
+        points.removeLast();
+        if (points.isEmpty()) {
+            lastPoint = {};
+            lastEdge.clear();
+        } else {
+            // Remove last saved path
+            const auto len = pathsLengths.last();
+            const auto index = currentPath.size() - len;
+            currentPath.remove(index, len);
+            pathsLengths.removeLast();
+            pathsWidths.removeLast();
+            pathsColors.removeLast();
+
+            lastPoint = points.last();
+            const auto currentPoint = QWidget::mapFromGlobal(QCursor::pos());
+            const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
+                                       { currentPoint.x(), currentPoint.y() });
+            setLastEdge(path);
+        }
+    }
+
+    update();
+}
+
+void PaintArea::setPenWidth(int width) { pens.currentEdge.setWidth(width); }
+
+void PaintArea::setPenColor(const QColor &color) {
+    pens.currentEdge.setColor(color);
+}
+
 void PaintArea::finalizePath() {
     if (points.size() <= 1) return;
 
@@ -76,10 +108,13 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         QPainter painter(&image);
         painter.setPen(QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
-        // lines.push_back({ lastPoint, currentPoint });
         lastPoint = currentPoint;
-        std::copy(lastEdge.cbegin(), lastEdge.cend(),
-                  std::back_inserter(currentPath));
+        currentPath.append(lastEdge.cbegin(), lastEdge.cend());
+        if (!lastEdge.empty()) {
+            pathsLengths.push_back(lastEdge.size());
+            pathsWidths.push_back(pens.currentEdge.width());
+            pathsColors.push_back(pens.currentEdge.color());
+        }
         points.push_back(lastPoint);
     } else if (event->buttons() & Qt::RightButton) {
         const auto pd = getConfirmedPoints();
@@ -113,15 +148,30 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     painter.setPen(pens.point);
     painter.drawPoints(points);
 
-    painter.setPen(pens.currentPath);
-    painter.drawPoints(currentPath);
+    //    painter.setPen(pens.currentPath);
+    //    painter.drawPoints(currentPath);
+
+    int start = 0;
+    for (int i = 0; i < pathsWidths.size(); ++i) {
+        const auto width = pathsWidths[i];
+        const auto length = pathsLengths[i];
+        const auto color = pathsColors[i];
+        const auto &path =
+            QList<QPoint>{ currentPath.begin() + start,
+                           currentPath.begin() + start + length };
+        pens.currentPath.setWidth(width);
+        pens.currentPath.setColor(color);
+        painter.setPen(pens.currentPath);
+        painter.drawPoints(path);
+        start += length;
+    }
 
     painter.setPen(pens.currentEdge);
     painter.drawPoints(lastEdge);
 
-    painter.setPen(pens.previousPath);
-    for (const auto &points : previousPaths)
-        painter.drawPoints(points);
+    //    painter.setPen(pens.previousPath);
+    //    for (const auto &points : previousPaths)
+    //        painter.drawPoints(points);
 
     painter.setPen(pens.region);
     for (int x = 0; x < image.width(); ++x) {
