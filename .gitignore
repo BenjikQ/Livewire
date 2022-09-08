@@ -1,8 +1,0 @@
-# Build folders
-bin/
-build/
-cmake-build-*/
-
-
-# Cmake
-CMakeLists.txt.user
