@@ -25,15 +25,27 @@ void PaintArea::open(const QString &filePath) {
     region = std::vector<bool>(image.width() * image.height(), false);
 }
 
-void PaintArea::save(const QString &filePath) {
+void PaintArea::save(const QString &filePath, SaveOptions opts) {
     static const QColor empty{ 0, 0, 0, 0 };
     QImageWriter writer(filePath);
     QImage resultImage = image;
 
-    for (int y = 0; y < image.height(); ++y)
-        for (int x = 0; x < image.width(); ++x)
-            if (!region[image.width() * y + x])
-                resultImage.setPixelColor(x, y, empty);
+    if (opts.saveInside != opts.saveOutside) {
+        for (int y = 0; y < image.height(); ++y)
+            for (int x = 0; x < image.width(); ++x)
+                if (region[image.width() * y + x] == opts.saveOutside)
+                    resultImage.setPixelColor(x, y, empty);
+    } else if (!opts.saveInside) {
+        resultImage.fill(empty);
+    }
+
+    if (opts.savePath) {
+        // TODO: copy path to resultImage
+    }
+
+    if (opts.savePoints) {
+        // TODO: copy points to resultImage
+    }
 
     writer.write(resultImage);
 }

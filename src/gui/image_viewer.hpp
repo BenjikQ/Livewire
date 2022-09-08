@@ -10,6 +10,7 @@ class ImageViewer;
 QT_END_NAMESPACE
 
 class PaintArea;
+class PresaveDialog;
 
 class ImageViewer : public QMainWindow {
     Q_OBJECT
@@ -27,6 +28,7 @@ private:
     void loadImage(const QString &filePath);
 
     PaintArea *paintArea;
+    PresaveDialog *presaveDialog;
     Ui::ImageViewer *ui;
 };
 

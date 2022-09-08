@@ -4,7 +4,10 @@ set(PROJECT_SOURCES
         image_viewer.hpp
         image_viewer.ui
         paint_area.cpp
-        paint_area.hpp)
+        paint_area.hpp
+        presave_dialog.hpp
+        presave_dialog.cpp
+        io.hpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(livewire_gui

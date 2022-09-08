@@ -5,11 +5,13 @@
 #include <QStandardPaths>
 
 #include "paint_area.hpp"
+#include "presave_dialog.hpp"
 #include "ui_image_viewer.h"
 
 ImageViewer::ImageViewer(QWidget *parent) :
     QMainWindow(parent),
     paintArea(new PaintArea(this)),
+    presaveDialog(new PresaveDialog(this)),
     ui(new Ui::ImageViewer) {
     ui->setupUi(this);
     new QShortcut(Qt::CTRL | Qt::Key_W, this, SLOT(close()));
@@ -44,10 +46,18 @@ void ImageViewer::save() {
         QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
     static const QString homeDirectory =
         homePath.first().split(QDir::separator()).last();
+
+    SaveOptions opts{};
+    if (presaveDialog->exec())
+        opts = presaveDialog->getResult();
+    else
+        return;
+
     const QString filePath =
         QFileDialog::getSaveFileName(this, tr("Open Image"), homeDirectory,
                                      tr("Image Files (*.png *.jpg *.bmp)"));
-    if (!filePath.isEmpty()) paintArea->save(filePath);
+
+    if (!filePath.isEmpty()) paintArea->save(filePath, opts);
 }
 
 void ImageViewer::closePath() { paintArea->finalizePath(); }
