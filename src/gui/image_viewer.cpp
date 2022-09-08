@@ -19,6 +19,12 @@ ImageViewer::ImageViewer(QWidget *parent) :
                              QString::number(size.height()) + " piks.");
     ui->scrollArea->setVisible(false);
     ui->scrollArea->setWidget(paintArea);
+
+    // Didn't work in ui designer
+    connect(ui->horizontalSlider, &QSlider::valueChanged, this, [&]() {
+        ui->penWidthLabel->setNum(ui->horizontalSlider->value());
+        paintArea->setPenWidth(ui->horizontalSlider->value());
+    });
 }
 
 ImageViewer::~ImageViewer() { delete ui; }
@@ -36,6 +42,7 @@ void ImageViewer::open() {
     if (!filePath.isEmpty()) {
         paintArea->open(filePath);
         ui->scrollArea->setVisible(true);
+        ui->horizontalLayout->removeItem(ui->horizontalSpacer);
     }
 }
 

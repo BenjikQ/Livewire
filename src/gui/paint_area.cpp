@@ -50,6 +50,7 @@ void PaintArea::undo() {
             const auto index = currentPath.size() - len;
             currentPath.remove(index, len);
             pathsLengths.removeLast();
+            pathsWidths.removeLast();
 
             lastPoint = points.last();
             const auto currentPoint = QWidget::mapFromGlobal(QCursor::pos());
@@ -61,6 +62,8 @@ void PaintArea::undo() {
 
     update();
 }
+
+void PaintArea::setPenWidth(int width) { pens.currentEdge.setWidth(width); }
 
 void PaintArea::finalizePath() {
     if (points.size() <= 1) return;
@@ -88,13 +91,11 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         QPainter painter(&image);
         painter.setPen(QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
-        // lines.push_back({ lastPoint, currentPoint });
         lastPoint = currentPoint;
         currentPath.append(lastEdge.cbegin(), lastEdge.cend());
-        //        std::copy(lastEdge.cbegin(), lastEdge.cend(),
-        //                  std::back_inserter(currentPath));
         if (!lastEdge.empty()) {
             pathsLengths.push_back(lastEdge.size());
+            pathsWidths.push_back(pens.currentEdge.width());
         }
         points.push_back(lastPoint);
     } else if (event->buttons() & Qt::RightButton) {
@@ -129,15 +130,27 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     painter.setPen(pens.point);
     painter.drawPoints(points);
 
-    painter.setPen(pens.currentPath);
-    painter.drawPoints(currentPath);
+    //    painter.setPen(pens.currentPath);
+    //    painter.drawPoints(currentPath);
+
+    int start = 0;
+    for (int i = 0; i < pathsWidths.size(); ++i) {
+        const auto width = pathsWidths[i];
+        const auto length = pathsLengths[i];
+        const auto &path = QList<QPoint>{ currentPath.begin() + start,
+                                          currentPath.begin() + start + length };
+        pens.currentPath.setWidth(width);
+        painter.setPen(pens.currentPath);
+        painter.drawPoints(path);
+        start += length;
+    }
 
     painter.setPen(pens.currentEdge);
     painter.drawPoints(lastEdge);
 
-    painter.setPen(pens.previousPath);
-    for (const auto &points : previousPaths)
-        painter.drawPoints(points);
+    //    painter.setPen(pens.previousPath);
+    //    for (const auto &points : previousPaths)
+    //        painter.drawPoints(points);
 
     painter.setPen(pens.region);
     for (int x = 0; x < image.width(); ++x) {

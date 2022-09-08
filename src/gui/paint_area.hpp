@@ -17,6 +17,8 @@ public:
     void save(const QString &filePath);
     void undo();
 
+    void setPenWidth(int width);
+
     void finalizePath();
 
 protected:
@@ -35,10 +37,11 @@ private:
     QList<QPoint> currentPath;
     QList<QList<QPoint>> previousPaths;
     QList<int> pathsLengths;
+    QList<int> pathsWidths;
     // QList<QPoint> region;
     std::vector<bool> region;
 
-    const struct {
+    struct {
         QPen point{ Qt::red, 10, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin };
         QPen currentEdge{ Qt::green, 3, Qt::SolidLine, Qt::RoundCap,
                           Qt::RoundJoin };
