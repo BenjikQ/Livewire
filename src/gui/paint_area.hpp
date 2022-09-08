@@ -18,6 +18,7 @@ public:
     void undo();
 
     void setPenWidth(int width);
+    void setPenColor(const QColor& color);
 
     void finalizePath();
 
@@ -38,6 +39,7 @@ private:
     QList<QList<QPoint>> previousPaths;
     QList<int> pathsLengths;
     QList<int> pathsWidths;
+    QList<QColor> pathsColors;
     // QList<QPoint> region;
     std::vector<bool> region;
 

@@ -51,6 +51,7 @@ void PaintArea::undo() {
             currentPath.remove(index, len);
             pathsLengths.removeLast();
             pathsWidths.removeLast();
+            pathsColors.removeLast();
 
             lastPoint = points.last();
             const auto currentPoint = QWidget::mapFromGlobal(QCursor::pos());
@@ -64,6 +65,10 @@ void PaintArea::undo() {
 }
 
 void PaintArea::setPenWidth(int width) { pens.currentEdge.setWidth(width); }
+
+void PaintArea::setPenColor(const QColor &color) {
+    pens.currentEdge.setColor(color);
+}
 
 void PaintArea::finalizePath() {
     if (points.size() <= 1) return;
@@ -96,6 +101,7 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
         if (!lastEdge.empty()) {
             pathsLengths.push_back(lastEdge.size());
             pathsWidths.push_back(pens.currentEdge.width());
+            pathsColors.push_back(pens.currentEdge.color());
         }
         points.push_back(lastPoint);
     } else if (event->buttons() & Qt::RightButton) {
@@ -137,9 +143,12 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     for (int i = 0; i < pathsWidths.size(); ++i) {
         const auto width = pathsWidths[i];
         const auto length = pathsLengths[i];
-        const auto &path = QList<QPoint>{ currentPath.begin() + start,
-                                          currentPath.begin() + start + length };
+        const auto color = pathsColors[i];
+        const auto &path =
+            QList<QPoint>{ currentPath.begin() + start,
+                           currentPath.begin() + start + length };
         pens.currentPath.setWidth(width);
+        pens.currentPath.setColor(color);
         painter.setPen(pens.currentPath);
         painter.drawPoints(path);
         start += length;
