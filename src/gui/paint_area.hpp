@@ -28,6 +28,9 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    void clear();
+
+private:
     bool drawing = false;
     DistanceGraph graph;
     cv::Mat imageGray;

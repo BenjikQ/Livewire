@@ -18,6 +18,7 @@ void PaintArea::open(const QString &filePath) {
     image = reader.read();
     setMinimumSize(image.size());
     setMouseTracking(true);
+    clear();
 
     cv::Mat temp = cv::imread(filePath.toStdString());
     cv::cvtColor(temp, imageGray, cv::COLOR_BGR2GRAY);
@@ -182,6 +183,18 @@ void PaintArea::paintEvent(QPaintEvent *event) {
     //            }
     //        }
     //    }
+}
+
+void PaintArea::clear() {
+    lastPoint = {};
+    lastEdge.clear();
+    points.clear();
+    currentPath.clear();
+    previousPaths.clear();
+    pathsLengths.clear();
+    pathsWidths.clear();
+    pathsColors.clear();
+    region.clear();
 }
 
 void PaintArea::setLastEdge(const std::vector<Point> &path) {
