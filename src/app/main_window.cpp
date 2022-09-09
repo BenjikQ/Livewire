@@ -26,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->setupUi(this);
     m_scene->installEventFilter(this);
     m_ui->view->setScene(m_scene);
+    QIcon icon{ ":/icons/data/images/new.png" };  // Should be set with designer
+    m_ui->actionOpen->setIcon(icon);
     setupStatusBar();
 }
 
