@@ -31,9 +31,10 @@ void MainWindow::open() {
 
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
-        m_scene->clear();
         QImageReader reader{ filePath };
         m_image = reader.read();
+
+        m_scene->reset();
         m_scene->addPixmap(QPixmap::fromImage(m_image));
         m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
         m_scene->enableDrawing(true);
