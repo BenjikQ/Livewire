@@ -14,6 +14,7 @@ public:
     explicit PaintArea(QWidget *parent = nullptr);
 
     void open(const QString &filePath);
+    void load(const QString &filePath);
     void save(const QString &filePath, SaveOptions opts);
     void undo();
 

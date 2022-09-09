@@ -506,6 +506,7 @@ QMenu:item:selected
      <string>File</string>
     </property>
     <addaction name="openFileAction"/>
+    <addaction name="loadOutlinesAction"/>
     <addaction name="saveAsAction"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -540,6 +541,11 @@ QMenu:item:selected
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="loadOutlinesAction">
+   <property name="text">
+    <string>Load outlines</string>
    </property>
   </action>
  </widget>
@@ -593,10 +599,27 @@ QMenu:item:selected
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>loadOutlinesAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>load()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open()</slot>
   <slot>save()</slot>
   <slot>undo()</slot>
+  <slot>load()</slot>
  </slots>
 </ui>

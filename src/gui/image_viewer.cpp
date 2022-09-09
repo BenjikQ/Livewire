@@ -9,18 +9,18 @@
 #include "presave_dialog.hpp"
 #include "ui_image_viewer.h"
 
-//static const QMap<QString, QColor> colors{
-//    { "black", QColorConstants::Black },
-//    { "blue", QColorConstants::Blue },
-//    { "cyan", QColorConstants::Cyan },
-//    { "green", QColorConstants::Green },
-//    { "gray", QColorConstants::Gray },
-//    { "magenta", QColorConstants::Magenta },
-//    { "orange", QColorConstants::Svg::orange },
-//    { "red", QColorConstants::Red },
-//    { "white", QColorConstants::White },
-//    { "yellow", QColorConstants::Yellow },
-//};
+// static const QMap<QString, QColor> colors{
+//     { "black", QColorConstants::Black },
+//     { "blue", QColorConstants::Blue },
+//     { "cyan", QColorConstants::Cyan },
+//     { "green", QColorConstants::Green },
+//     { "gray", QColorConstants::Gray },
+//     { "magenta", QColorConstants::Magenta },
+//     { "orange", QColorConstants::Svg::orange },
+//     { "red", QColorConstants::Red },
+//     { "white", QColorConstants::White },
+//     { "yellow", QColorConstants::Yellow },
+// };
 
 ImageViewer::ImageViewer(QWidget *parent) :
     QMainWindow(parent),
@@ -99,18 +99,18 @@ ImageViewer::ImageViewer(QWidget *parent) :
         paintArea->setPenColor(QColorConstants::Yellow);
     });
 
-//    const QList<QPushButton *> &colorPicker =
-//        ui->groupBox2->findChildren<QPushButton *>();
-//    for (const auto &colorButton : colorPicker) {
-//        const QString styleSheet = "background: " + colorButton->objectName();
-//        const QColor color = colors[colorButton->objectName()];
-//        qDebug() << styleSheet << color;
-//        connect(colorButton, &QPushButton::clicked, this, [&]() {
-//            qDebug() << styleSheet << color;
-//            ui->color->setStyleSheet(styleSheet);
-//            paintArea->setPenColor(colors[colorButton->objectName()]);
-//        });
-//    }
+    //    const QList<QPushButton *> &colorPicker =
+    //        ui->groupBox2->findChildren<QPushButton *>();
+    //    for (const auto &colorButton : colorPicker) {
+    //        const QString styleSheet = "background: " +
+    //        colorButton->objectName(); const QColor color =
+    //        colors[colorButton->objectName()]; qDebug() << styleSheet <<
+    //        color; connect(colorButton, &QPushButton::clicked, this, [&]() {
+    //            qDebug() << styleSheet << color;
+    //            ui->color->setStyleSheet(styleSheet);
+    //            paintArea->setPenColor(colors[colorButton->objectName()]);
+    //        });
+    //    }
 }
 
 ImageViewer::~ImageViewer() { delete ui; }
@@ -129,6 +129,19 @@ void ImageViewer::open() {
         paintArea->open(filePath);
         ui->scrollArea->setVisible(true);
         ui->horizontalLayout->removeItem(ui->horizontalSpacer);
+    }
+}
+
+void ImageViewer::load() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getOpenFileName(this, tr("Open outlines file"),
+                                     homeDirectory, tr("Text files (*.txt)"));
+    if (!filePath.isEmpty()) {
+        paintArea->load(filePath);
     }
 }
 

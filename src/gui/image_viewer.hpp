@@ -21,6 +21,7 @@ public:
 
 private slots:
     void open();
+    void load();
     void save();
     void closePath();
     void undo();

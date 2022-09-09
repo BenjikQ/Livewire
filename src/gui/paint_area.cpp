@@ -1,12 +1,12 @@
 #include "paint_area.hpp"
 
+#include <QFileInfo>
 #include <QImageReader>
 #include <QImageWriter>
 #include <QMouseEvent>
 #include <QPainter>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <QFileInfo>
 #include <queue>
 
 #include "cost_functions.hpp"
@@ -26,6 +26,32 @@ void PaintArea::open(const QString &filePath) {
     cv::cvtColor(temp, imageGray, cv::COLOR_BGR2GRAY);
     graph = DistanceGraph(imageGray, improvedCostFunc);
     region = std::vector<bool>(image.width() * image.height(), false);
+}
+
+void PaintArea::load(const QString &filePath) {
+    //    QPoint lastPoint;
+    //    QList<QPoint> lastEdge;
+    //    QList<QPoint> points;
+    //    QList<QPoint> currentPath;
+    //    QList<QList<QPoint>> previousPaths;
+    //    QList<int> pathsLengths;
+    //    QList<int> pathsWidths;
+    //    QList<QColor> pathsColors;
+    currentPath = readPointsInto<QList<QPoint>>(filePath.toStdString().c_str());
+    lastPoint = currentPath.last();
+
+    pathsLengths.clear();
+    pathsWidths.clear();
+    pathsColors.clear();
+    points.clear();
+
+    pathsLengths.push_back(currentPath.size());
+    pathsWidths.push_back(pens.currentPath.width());
+    pathsColors.push_back(pens.currentPath.color());
+    points.push_back(currentPath.first());
+    points.push_back(currentPath.last());
+
+    update();
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {
@@ -49,7 +75,8 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
 
     if (opts.saveTextFile) {
         QFileInfo info(filePath);
-        QString textFilePath = info.path() + "/" + info.completeBaseName() + ".txt";
+        QString textFilePath =
+            info.path() + "/" + info.completeBaseName() + ".txt";
         writePointsToTextC(currentPath, textFilePath.toStdString().c_str());
     }
 
