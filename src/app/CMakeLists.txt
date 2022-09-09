@@ -24,4 +24,5 @@ qt_add_resources(main "icons"
     "/icons"
   FILES
     "../../data/images/mouse-coordinates.png"
-    "../../data/images/new.png")
+    "../../data/images/new.png"
+    "../../data/images/screen.png")

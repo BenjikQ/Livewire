@@ -9,6 +9,7 @@ class QEvent;
 class QGraphicsView;
 class QLabel;
 class QMouseEvent;
+class QResizeEvent;
 class QString;
 QT_END_NAMESPACE
 
@@ -29,6 +30,7 @@ public:
 
 protected:
     void mouseMoveEvent(QMouseEvent *mouseEvent) override;
+    void resizeEvent(QResizeEvent *resizeEvent) override;
 
 private slots:
     void open();
@@ -40,6 +42,8 @@ private:
     Ui::MainWindow *m_ui;
     QLabel *m_mouseCoordinatesIcon;
     QLabel *m_mouseCoordinatesLabel;
+    QLabel *m_screenSizeIcon;
+    QLabel *m_screenSizeLabel;
 
     QImage m_image;
 

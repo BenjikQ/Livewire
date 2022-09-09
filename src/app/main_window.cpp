@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QList>
 #include <QMouseEvent>
+#include <QResizeEvent>
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
@@ -55,6 +56,12 @@ void MainWindow::mouseMoveEvent(QMouseEvent *mouseEvent) {
     m_mouseCoordinatesLabel->clear();
 }
 
+void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
+    QMainWindow::resizeEvent(resizeEvent);
+    const QString windowSize = QString::number(size().width()) + " × " + QString::number(size().height());
+    m_screenSizeLabel->setText(windowSize);
+}
+
 void MainWindow::open() {
     static const QString caption = tr("Open Image");
     static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
@@ -84,9 +91,22 @@ void MainWindow::setupStatusBar() {
     m_mouseCoordinatesIcon->setPixmap(pixmap);
 
     m_mouseCoordinatesLabel = new QLabel(this);
-    m_mouseCoordinatesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_mouseCoordinatesLabel->setStyleSheet("margin-bottom: 10px");
+    m_mouseCoordinatesLabel->setFixedWidth(80);
+
+    m_screenSizeIcon = new QLabel(this);
+    m_screenSizeIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
+    icon = QIcon{ ":/icons/data/images/screen.png" };
+    pixmap = icon.pixmap(QSize{ 16, 16 });
+    m_screenSizeIcon->setPixmap(pixmap);
+
+    m_screenSizeLabel = new QLabel(this);
+    m_screenSizeLabel->setStyleSheet("margin-bottom: 10px");
+    const QString windowSize = QString::number(size().width()) + " × " + QString::number(size().height());
+    m_screenSizeLabel->setText(windowSize);
 
     statusBar()->addWidget(m_mouseCoordinatesIcon);
     statusBar()->addWidget(m_mouseCoordinatesLabel);
+    statusBar()->addWidget(m_screenSizeIcon);
+    statusBar()->addWidget(m_screenSizeLabel);
 }
