@@ -38,6 +38,7 @@ private:
 
 private:
     Ui::MainWindow *m_ui;
+    QLabel *m_mouseCoordinatesIcon;
     QLabel *m_mouseCoordinatesLabel;
 
     QImage m_image;

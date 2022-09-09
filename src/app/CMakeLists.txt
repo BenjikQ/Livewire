@@ -18,3 +18,9 @@ set_target_properties(main
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON)
 qt_finalize_executable(main)
+
+qt_add_resources(main "icons"
+  PREFIX
+    "/icons"
+  FILES
+    "../../data/images/mouse-coordinates.png")

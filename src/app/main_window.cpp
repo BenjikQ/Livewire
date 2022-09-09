@@ -7,12 +7,14 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QImageReader>
 #include <QLabel>
 #include <QList>
 #include <QMouseEvent>
 #include <QStandardPaths>
 #include <QString>
+#include <QStyle>
 
 #include "diagram_scene.hpp"
 #include "ui_main_window.h"
@@ -73,9 +75,16 @@ void MainWindow::open() {
 }
 
 void MainWindow::setupStatusBar() {
+    m_mouseCoordinatesIcon = new QLabel(this);
+    m_mouseCoordinatesIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
+    QIcon icon{ ":/icons/data/images/mouse-coordinates.png" };
+    QPixmap pixmap = icon.pixmap(QSize{ 16, 16 });
+    m_mouseCoordinatesIcon->setPixmap(pixmap);
+
     m_mouseCoordinatesLabel = new QLabel(this);
     m_mouseCoordinatesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    m_mouseCoordinatesLabel->setStyleSheet("margin-left: 10px; margin-bottom: 10px");
+    m_mouseCoordinatesLabel->setStyleSheet("margin-bottom: 10px");
 
+    statusBar()->addWidget(m_mouseCoordinatesIcon);
     statusBar()->addWidget(m_mouseCoordinatesLabel);
 }
