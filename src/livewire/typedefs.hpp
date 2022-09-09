@@ -116,7 +116,7 @@ struct Array2D {
 };
 
 struct SaveOptions {
-    bool saveInside, saveOutside, savePath, savePoints;
+    bool saveInside, saveOutside, savePath, savePoints, saveTextFile;
 };
 
 #endif  // TYPEDEFS_HPP

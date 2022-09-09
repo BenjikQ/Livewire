@@ -19,6 +19,7 @@ SaveOptions PresaveDialog::getResult() const {
     opts.saveOutside = ui->saveOutside->isChecked();
     opts.savePath = ui->savePath->isChecked();
     opts.savePoints = ui->savePoints->isChecked();
+    opts.saveTextFile = ui->saveTextFile->isChecked();
 
     return opts;
 }

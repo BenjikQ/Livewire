@@ -6,10 +6,12 @@
 #include <QPainter>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <QFileInfo>
 #include <queue>
 
 #include "cost_functions.hpp"
 #include "dijkstra.hpp"
+#include "io.hpp"
 
 PaintArea::PaintArea(QWidget *parent) : QWidget{ parent } {}
 
@@ -27,7 +29,7 @@ void PaintArea::open(const QString &filePath) {
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {
-    static const QColor empty{ 0, 0, 0, 0 };
+    static constexpr QColor empty{ 0, 0, 0, 0 };
     QImageWriter writer(filePath);
     QImage resultImage = image;
 
@@ -43,6 +45,12 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
     if (opts.savePath || opts.savePoints) {
         QPainter painter(&resultImage);
         paintPathComponents(painter, false, opts.savePath, opts.savePoints);
+    }
+
+    if (opts.saveTextFile) {
+        QFileInfo info(filePath);
+        QString textFilePath = info.path() + "/" + info.completeBaseName() + ".txt";
+        writePointsToTextC(currentPath, textFilePath.toStdString().c_str());
     }
 
     writer.write(resultImage);
