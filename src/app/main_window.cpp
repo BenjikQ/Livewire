@@ -1,13 +1,16 @@
 #include "main_window.hpp"
 
 #include <QDir>
+#include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QImageReader>
 #include <QLabel>
 #include <QList>
+#include <QMouseEvent>
 #include <QStandardPaths>
 #include <QString>
 
@@ -19,12 +22,33 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new DiagramScene(this) } {
     m_ui->setupUi(this);
-    setupStatusBar();
+    m_scene->installEventFilter(this);
     m_ui->view->setScene(m_scene);
+    setupStatusBar();
 }
 
 MainWindow::~MainWindow() {
     delete m_ui;
+}
+
+// Capture mouse move over scene
+// in order to update label with a mouse position
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
+        const QGraphicsSceneMouseEvent *mouseMoveEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+        const QPointF mousePosition = mouseMoveEvent->scenePos();
+        const QString coordinates =
+            QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
+        m_mouseCoordinatesLabel->setText(coordinates);
+    }
+    return false;
+}
+
+// Clearing label when mouse left scene
+// Remember to set mouseTracking in all sub widgets
+// in ui designer or by calling setMouseTracking(true)
+void MainWindow::mouseMoveEvent(QMouseEvent *mouseEvent) {
+    m_mouseCoordinatesLabel->clear();
 }
 
 void MainWindow::open() {
@@ -50,7 +74,6 @@ void MainWindow::open() {
 
 void MainWindow::setupStatusBar() {
     m_mouseCoordinatesLabel = new QLabel(this);
-    m_mouseCoordinatesLabel->setText("Label");
     m_mouseCoordinatesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_mouseCoordinatesLabel->setStyleSheet("margin-left: 10px; margin-bottom: 10px");
 

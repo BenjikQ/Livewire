@@ -5,8 +5,10 @@
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
+class QEvent;
 class QGraphicsView;
 class QLabel;
+class QMouseEvent;
 class QString;
 QT_END_NAMESPACE
 
@@ -22,6 +24,11 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+protected:
+    void mouseMoveEvent(QMouseEvent *mouseEvent) override;
 
 private slots:
     void open();
