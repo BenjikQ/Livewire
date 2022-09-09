@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QGraphicsView>
 #include <QImageReader>
+#include <QFileInfo>
 #include <QList>
 #include <QStandardPaths>
 #include <QString>
@@ -31,6 +32,9 @@ void MainWindow::open() {
 
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
+        QFileInfo info{ filePath };
+        setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
+
         QImageReader reader{ filePath };
         m_image = reader.read();
 
