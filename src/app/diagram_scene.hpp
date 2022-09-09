@@ -6,6 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 class QGraphicsEllipseItem;
+class QGraphicsSceneMouseEvent;
 class QPointF;
 QT_END_NAMESPACE
 

@@ -2,9 +2,11 @@
 
 #include <QDir>
 #include <QFileDialog>
-#include <QGraphicsView>
-#include <QImageReader>
 #include <QFileInfo>
+#include <QGraphicsView>
+#include <QHBoxLayout>
+#include <QImageReader>
+#include <QLabel>
 #include <QList>
 #include <QStandardPaths>
 #include <QString>
@@ -17,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new DiagramScene(this) } {
     m_ui->setupUi(this);
+    setupStatusBar();
     m_ui->view->setScene(m_scene);
 }
 
@@ -43,4 +46,13 @@ void MainWindow::open() {
         m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
         m_scene->enableDrawing(true);
     }
+}
+
+void MainWindow::setupStatusBar() {
+    m_mouseCoordinatesLabel = new QLabel(this);
+    m_mouseCoordinatesLabel->setText("Label");
+    m_mouseCoordinatesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    m_mouseCoordinatesLabel->setStyleSheet("margin-left: 10px; margin-bottom: 10px");
+
+    statusBar()->addWidget(m_mouseCoordinatesLabel);
 }

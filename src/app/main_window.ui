@@ -34,6 +34,11 @@ QGroupBox
 {
 	border: 1px solid gray;
 	border-radius: 10px;
+}
+QGraphicsView
+{
+	border: 1px solid gray;
+	border-radius: 10px;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">

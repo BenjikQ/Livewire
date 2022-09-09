@@ -6,6 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 class QGraphicsView;
+class QLabel;
 class QString;
 QT_END_NAMESPACE
 
@@ -26,7 +27,11 @@ private slots:
     void open();
 
 private:
+    void setupStatusBar();
+
+private:
     Ui::MainWindow *m_ui;
+    QLabel *m_mouseCoordinatesLabel;
 
     QImage m_image;
 

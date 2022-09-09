@@ -1,6 +1,7 @@
 #include "diagram_scene.hpp"
 
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QLineF>
@@ -29,7 +30,6 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) {
 
 void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) {
     if (m_drawing && m_lastPoint) {
-        //        drawLine(mouseEvent->scenePos().x(), mouseEvent->scenePos().y());
     }
 }
 
