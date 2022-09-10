@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>292</width>
-    <height>189</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -44,13 +44,6 @@
       <widget class="QCheckBox" name="savePoints">
        <property name="text">
         <string>Save chosen points</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="saveTextFile">
-       <property name="text">
-        <string>Save additional text file</string>
        </property>
       </widget>
      </item>

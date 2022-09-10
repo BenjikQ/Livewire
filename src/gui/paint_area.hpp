@@ -14,8 +14,9 @@ public:
     explicit PaintArea(QWidget *parent = nullptr);
 
     void open(const QString &filePath);
-    void load(const QString &filePath);
     void save(const QString &filePath, SaveOptions opts);
+    void loadOutlines(const QString &filePath);
+    void saveOutlines(const QString &filePath);
     void undo();
 
     void setPenWidth(int width);

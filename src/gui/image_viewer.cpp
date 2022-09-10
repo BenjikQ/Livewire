@@ -132,19 +132,6 @@ void ImageViewer::open() {
     }
 }
 
-void ImageViewer::load() {
-    static const QStringList homePath =
-        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-    static const QString homeDirectory =
-        homePath.first().split(QDir::separator()).last();
-    const QString filePath =
-        QFileDialog::getOpenFileName(this, tr("Open outlines file"),
-                                     homeDirectory, tr("Text files (*.txt)"));
-    if (!filePath.isEmpty()) {
-        paintArea->load(filePath);
-    }
-}
-
 void ImageViewer::save() {
     static const QStringList homePath =
         QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
@@ -162,6 +149,33 @@ void ImageViewer::save() {
                                      tr("Image Files (*.png *.jpg *.bmp)"));
 
     if (!filePath.isEmpty()) paintArea->save(filePath, opts);
+}
+
+void ImageViewer::saveOutlines() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getSaveFileName(this, tr("Open Image"), homeDirectory,
+                                     tr("Text files (*.txt)"));
+    if (!filePath.isEmpty()) {
+        paintArea->saveOutlines(filePath);
+    }
+
+}
+
+void ImageViewer::loadOutlines() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getOpenFileName(this, tr("Open outlines file"),
+                                     homeDirectory, tr("Text files (*.txt)"));
+    if (!filePath.isEmpty()) {
+        paintArea->loadOutlines(filePath);
+    }
 }
 
 void ImageViewer::closePath() { paintArea->finalizePath(); }
