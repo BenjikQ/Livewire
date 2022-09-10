@@ -4,6 +4,9 @@ project(Livewire
   VERSION 0.1.0
   LANGUAGES CXX)
 
+include(CheckIPOSupported)
+check_ipo_supported()
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

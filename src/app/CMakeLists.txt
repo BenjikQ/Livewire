@@ -16,7 +16,8 @@ set_target_properties(main
   PROPERTIES
     OUTPUT_NAME livewire
     WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON)
+    MACOSX_BUNDLE ON
+    INTERPROCEDURAL_OPTIMIZATION TRUE)
 qt_finalize_executable(main)
 
 qt_add_resources(main "icons"
