@@ -94,6 +94,7 @@ QGraphicsView
      <string>&amp;File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionSaveAs"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -116,6 +117,14 @@ QGraphicsView
     <string>Ctrl+O</string>
    </property>
   </action>
+  <action name="actionSaveAs">
+   <property name="text">
+    <string>&amp;Save as...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -123,7 +132,23 @@ QGraphicsView
    <sender>actionOpen</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>open()</slot>
+   <slot>openImageFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveAs</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveImageFile()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -137,6 +162,7 @@ QGraphicsView
   </connection>
  </connections>
  <slots>
-  <slot>open()</slot>
+  <slot>openImageFile()</slot>
+  <slot>saveImageFile()</slot>
  </slots>
 </ui>

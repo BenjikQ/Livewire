@@ -32,7 +32,8 @@ protected:
     void resizeEvent(QResizeEvent *resizeEvent) override;
 
 private slots:
-    [[maybe_unused]] void open();
+    [[maybe_unused]] void openImageFile();
+    [[maybe_unused]] void saveImageFile();
 
 private:
     void setupStatusBar();

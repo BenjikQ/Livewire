@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QImageReader>
+#include <QImageWriter>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QStandardPaths>
@@ -32,8 +33,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
 
-    const QIcon icon{ ":/icons/data/images/new.png" };  // Should be set in designer
+    QIcon icon{ ":/icons/data/images/new.png" };  // Should be set in designer
     m_ui->actionOpen->setIcon(icon);
+
+    icon = QIcon{ ":/icons/data/images/save.png" };
+    m_ui->actionSaveAs->setIcon(icon);
 
     setupStatusBar();
 }
@@ -53,8 +57,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         // because the (0, 0) is now next to the center of the scene
         // thus displaying negative values in left-top part when moving cursor
         // it was tested empirically
-        // should have been calculated based on other factors
-        const QPoint sceneOffset{ size().width() / 2 - 195, size().height() / 2 - 48 };
+        // should have been calculated based on scene intro text
+        const QPoint sceneOffset{ size().width() / 2 - 191, size().height() / 2 - 48 };
         const QPointF mousePosition =
             m_image.isNull() ? mouseMoveEvent->scenePos() + sceneOffset : mouseMoveEvent->scenePos();
         const QString coordinates =
@@ -77,7 +81,7 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
     m_screenSizeLabel->setText(windowSize);
 }
 
-[[maybe_unused]] void MainWindow::open() {
+[[maybe_unused]] void MainWindow::openImageFile() {
     static const QString caption = tr("Open Image");
     static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
     static const QString homeDirectory = homePath.first().split(QDir::separator()).last();
@@ -96,6 +100,20 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
         m_scene->addPixmap(QPixmap::fromImage(m_image));
         m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
         m_scene->enableDrawing(true);
+    }
+}
+
+[[maybe_unused]] void MainWindow::saveImageFile() {
+    static const QString caption = tr("Save Image");
+    static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory = homePath.first().split(QDir::separator()).last();
+    static const QString filter = tr("Image Files (*.png *.jpg *.bmp)");
+
+    const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
+    if (!filePath.isEmpty()) {
+        QImageWriter writer{ filePath };
+        QImage resultImage{ m_image };
+        writer.write(resultImage);
     }
 }
 
