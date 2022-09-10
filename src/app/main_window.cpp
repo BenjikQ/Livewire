@@ -42,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     icon = QIcon{ ":/icons/data/images/save.png" };
     m_ui->actionSaveAs->setIcon(icon);
 
+    m_startSceneRect = m_scene->sceneRect();
+
     setupStatusBar();
 }
 
@@ -118,6 +120,19 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
         QImage resultImage{ m_image };
         writer.write(resultImage);
     }
+}
+
+[[maybe_unused]] void MainWindow::closeImageFile() {
+    m_image = {};
+
+    m_scene->reset();
+    m_scene->setSceneRect(m_startSceneRect);
+    const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
+    m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
+    m_scene->enableDrawing(false);
+
+    m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    m_ui->view->show();
 }
 
 void MainWindow::setupStatusBar() {

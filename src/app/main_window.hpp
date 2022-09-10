@@ -34,9 +34,11 @@ protected:
 private slots:
     [[maybe_unused]] void openImageFile();
     [[maybe_unused]] void saveImageFile();
+    [[maybe_unused]] void closeImageFile();
 
 private:
     void setupStatusBar();
+    //    void setupScene();
     void setupIconsInStatusBar();
     void setupLabelsInStatusBar();
 
@@ -49,6 +51,7 @@ private:
 
     QImage m_image{};
 
+    QRectF m_startSceneRect{};
     DiagramScene *m_scene{ nullptr };
 };
 

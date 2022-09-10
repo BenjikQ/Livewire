@@ -95,6 +95,7 @@ QGraphicsView
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionCloseFile"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -123,6 +124,11 @@ QGraphicsView
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionCloseFile">
+   <property name="text">
+    <string>Close File</string>
    </property>
   </action>
  </widget>
@@ -160,9 +166,26 @@ QGraphicsView
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionCloseFile</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>closeImageFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openImageFile()</slot>
   <slot>saveImageFile()</slot>
+  <slot>closeImageFile()</slot>
  </slots>
 </ui>
