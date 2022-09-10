@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsTextItem>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QImageReader>
@@ -22,10 +23,18 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new DiagramScene(this) } {
     m_ui->setupUi(this);
+
     m_scene->installEventFilter(this);
+    const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
+    m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
+
     m_ui->view->setScene(m_scene);
-    QIcon icon{ ":/icons/data/images/new.png" };  // Should be set with designer
+    m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    m_ui->view->show();
+
+    const QIcon icon{ ":/icons/data/images/new.png" };  // Should be set in designer
     m_ui->actionOpen->setIcon(icon);
+
     setupStatusBar();
 }
 
@@ -39,7 +48,15 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
         const QGraphicsSceneMouseEvent *mouseMoveEvent =
             static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-        const QPointF mousePosition = mouseMoveEvent->scenePos();
+
+        // if image was not read we need to calculate position in different way
+        // because the (0, 0) is now next to the center of the scene
+        // thus displaying negative values in left-top part when moving cursor
+        // it was tested empirically
+        // should have been calculated based on other factors
+        const QPoint sceneOffset{ size().width() / 2 - 195, size().height() / 2 - 48 };
+        const QPointF mousePosition =
+            m_image.isNull() ? mouseMoveEvent->scenePos() + sceneOffset : mouseMoveEvent->scenePos();
         const QString coordinates =
             QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
         m_mouseCoordinatesLabel->setText(coordinates);
@@ -68,12 +85,13 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
 
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
-        QFileInfo info{ filePath };
+        const QFileInfo info{ filePath };
         setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
 
         QImageReader reader{ filePath };
         m_image = reader.read();
 
+        m_ui->view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
         m_scene->reset();
         m_scene->addPixmap(QPixmap::fromImage(m_image));
         m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
