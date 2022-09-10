@@ -6,7 +6,6 @@
 
 QT_BEGIN_NAMESPACE
 class QEvent;
-class QGraphicsView;
 class QLabel;
 class QMouseEvent;
 class QResizeEvent;
@@ -24,7 +23,7 @@ class MainWindow : public QMainWindow {
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
 
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -33,21 +32,23 @@ protected:
     void resizeEvent(QResizeEvent *resizeEvent) override;
 
 private slots:
-    void open();
+    [[maybe_unused]] void open();
 
 private:
     void setupStatusBar();
+    void setupIconsInStatusBar();
+    void setupLabelsInStatusBar();
 
 private:
-    Ui::MainWindow *m_ui;
-    QLabel *m_mouseCoordinatesIcon;
-    QLabel *m_mouseCoordinatesLabel;
-    QLabel *m_screenSizeIcon;
-    QLabel *m_screenSizeLabel;
+    Ui::MainWindow *m_ui{ nullptr };
+    QLabel *m_mouseCoordinatesIcon{ nullptr };
+    QLabel *m_mouseCoordinatesLabel{ nullptr };
+    QLabel *m_screenSizeIcon{ nullptr };
+    QLabel *m_screenSizeLabel{ nullptr };
 
-    QImage m_image;
+    QImage m_image{};
 
-    DiagramScene *m_scene;
+    DiagramScene *m_scene{ nullptr };
 };
 
 #endif  // MAIN_WINDOW_HPP

@@ -12,7 +12,7 @@ QT_END_NAMESPACE
 
 class DiagramScene : public QGraphicsScene {
 public:
-    DiagramScene(QObject *parent = nullptr);
+    explicit DiagramScene(QObject *parent = nullptr);
 
     void enableDrawing(bool drawing) { m_drawing = drawing; }
     void reset();
@@ -26,17 +26,17 @@ private:
     void addEdge(const QPointF &position);
 
 private:
-    bool m_drawing = false;
+    bool m_drawing{ false };
 
-    QGraphicsEllipseItem *m_lastPoint = nullptr;  // last clicked point
+    QGraphicsEllipseItem *m_lastPoint{ nullptr };  // last clicked point
 
-    float m_pointRadius = 8;
-    float m_pointWidth = 1;
-    QColor m_pointInnerColor = QColorConstants::Red;
-    QColor m_pointOuterColor = QColorConstants::Black;
+    float m_pointRadius{ 8 };
+    float m_pointWidth{ 1 };
+    QColor m_pointInnerColor{ QColorConstants::Red };
+    QColor m_pointOuterColor{ QColorConstants::Black };
 
-    float m_lineWidth = 4;
-    QColor m_lineColor = QColorConstants::Green;
+    float m_lineWidth{ 4 };
+    QColor m_lineColor{ QColorConstants::Green };
 };
 
 #endif  // DIAGRAMSCENE_HPP

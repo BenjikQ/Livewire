@@ -1,5 +1,3 @@
-#include <string>
-
 #include <QApplication>
 
 #include "config.hpp"
@@ -10,7 +8,7 @@ static const QString VERSION = QString::fromStdString(std::string(PROJECT_VERSIO
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    app.setStyle("fusion");  // Due to not displaying underline in menubar
+    QApplication::setStyle("fusion");  // Due to not displaying underline in menu bar
 
     QCoreApplication::setApplicationName(PROJECT);
     QCoreApplication::setApplicationVersion(VERSION);
@@ -19,5 +17,5 @@ int main(int argc, char *argv[]) {
     window.setWindowTitle(PROJECT);
     window.show();
 
-    return app.exec();
+    return QApplication::exec();
 }

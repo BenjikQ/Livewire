@@ -5,14 +5,11 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QImageReader>
 #include <QLabel>
-#include <QList>
 #include <QMouseEvent>
-#include <QResizeEvent>
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
@@ -40,7 +37,8 @@ MainWindow::~MainWindow() {
 // in order to update label with a mouse position
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
-        const QGraphicsSceneMouseEvent *mouseMoveEvent = static_cast<QGraphicsSceneMouseEvent *>(event);
+        const QGraphicsSceneMouseEvent *mouseMoveEvent =
+            static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
         const QPointF mousePosition = mouseMoveEvent->scenePos();
         const QString coordinates =
             QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
@@ -62,7 +60,7 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
     m_screenSizeLabel->setText(windowSize);
 }
 
-void MainWindow::open() {
+[[maybe_unused]] void MainWindow::open() {
     static const QString caption = tr("Open Image");
     static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
     static const QString homeDirectory = homePath.first().split(QDir::separator()).last();
@@ -84,29 +82,38 @@ void MainWindow::open() {
 }
 
 void MainWindow::setupStatusBar() {
+    setupIconsInStatusBar();
+    setupLabelsInStatusBar();
+
+    // Order of adding widgets is important
+    // as they appear from left to right in the status bar
+    statusBar()->addWidget(m_mouseCoordinatesIcon);
+    statusBar()->addWidget(m_mouseCoordinatesLabel);
+    statusBar()->addWidget(m_screenSizeIcon);
+    statusBar()->addWidget(m_screenSizeLabel);
+}
+
+void MainWindow::setupIconsInStatusBar() {
     m_mouseCoordinatesIcon = new QLabel(this);
     m_mouseCoordinatesIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
     QIcon icon{ ":/icons/data/images/mouse-coordinates.png" };
     QPixmap pixmap = icon.pixmap(QSize{ 16, 16 });
     m_mouseCoordinatesIcon->setPixmap(pixmap);
 
-    m_mouseCoordinatesLabel = new QLabel(this);
-    m_mouseCoordinatesLabel->setStyleSheet("margin-bottom: 10px");
-    m_mouseCoordinatesLabel->setFixedWidth(80);
-
     m_screenSizeIcon = new QLabel(this);
     m_screenSizeIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
     icon = QIcon{ ":/icons/data/images/screen.png" };
     pixmap = icon.pixmap(QSize{ 16, 16 });
     m_screenSizeIcon->setPixmap(pixmap);
+}
+
+void MainWindow::setupLabelsInStatusBar() {
+    m_mouseCoordinatesLabel = new QLabel(this);
+    m_mouseCoordinatesLabel->setStyleSheet("margin-bottom: 10px");
+    m_mouseCoordinatesLabel->setFixedWidth(80);
 
     m_screenSizeLabel = new QLabel(this);
     m_screenSizeLabel->setStyleSheet("margin-bottom: 10px");
     const QString windowSize = QString::number(size().width()) + " × " + QString::number(size().height());
     m_screenSizeLabel->setText(windowSize);
-
-    statusBar()->addWidget(m_mouseCoordinatesIcon);
-    statusBar()->addWidget(m_mouseCoordinatesLabel);
-    statusBar()->addWidget(m_screenSizeIcon);
-    statusBar()->addWidget(m_screenSizeLabel);
 }
