@@ -11,7 +11,8 @@ qt_add_executable(main
 target_link_libraries(main
   PRIVATE
     livewire
-    Qt6::Widgets)
+    Qt6::Widgets
+    Qt6::Gui)
 set_target_properties(main
   PROPERTIES
     OUTPUT_NAME livewire

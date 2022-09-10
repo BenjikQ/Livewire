@@ -6,12 +6,13 @@
 #include <QFileInfo>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
-#include <QHBoxLayout>
 #include <QIcon>
 #include <QImageReader>
 #include <QImageWriter>
+#include <QKeySequence>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QShortcut>
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
@@ -24,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new DiagramScene(this) } {
     m_ui->setupUi(this);
+
+    new QShortcut(QKeySequence::Close, this, SLOT(close()));
 
     m_scene->installEventFilter(this);
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };

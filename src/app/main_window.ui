@@ -119,7 +119,7 @@ QGraphicsView
   </action>
   <action name="actionSaveAs">
    <property name="text">
-    <string>&amp;Save as...</string>
+    <string>&amp;Save As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
