@@ -28,15 +28,7 @@ void PaintArea::open(const QString &filePath) {
     region = std::vector<bool>(image.width() * image.height(), false);
 }
 
-void PaintArea::load(const QString &filePath) {
-    //    QPoint lastPoint;
-    //    QList<QPoint> lastEdge;
-    //    QList<QPoint> points;
-    //    QList<QPoint> currentPath;
-    //    QList<QList<QPoint>> previousPaths;
-    //    QList<int> pathsLengths;
-    //    QList<int> pathsWidths;
-    //    QList<QColor> pathsColors;
+void PaintArea::loadOutlines(const QString &filePath) {
     currentPath = readPointsInto<QList<QPoint>>(filePath.toStdString().c_str());
     lastPoint = currentPath.last();
 
@@ -52,6 +44,10 @@ void PaintArea::load(const QString &filePath) {
     points.push_back(currentPath.last());
 
     update();
+}
+
+void PaintArea::saveOutlines(const QString &filePath) {
+    writePointsToTextC(currentPath, filePath.toStdString().c_str());
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {
@@ -79,13 +75,6 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
     if (opts.savePath || opts.savePoints) {
         QPainter painter(&resultImage);
         paintPathComponents(painter, false, opts.savePath, opts.savePoints);
-    }
-
-    if (opts.saveTextFile) {
-        QFileInfo info(filePath);
-        QString textFilePath =
-            info.path() + "/" + info.completeBaseName() + ".txt";
-        writePointsToTextC(currentPath, textFilePath.toStdString().c_str());
     }
 
     writer.write(resultImage);

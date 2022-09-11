@@ -21,8 +21,9 @@ public:
 
 private slots:
     void open();
-    void load();
     void save();
+    void saveOutlines();
+    void loadOutlines();
     void closePath();
     void undo();
 

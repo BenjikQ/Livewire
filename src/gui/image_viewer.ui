@@ -507,6 +507,7 @@ QMenu:item:selected
     </property>
     <addaction name="openFileAction"/>
     <addaction name="loadOutlinesAction"/>
+    <addaction name="saveOutlinesAction"/>
     <addaction name="saveAsAction"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -546,6 +547,11 @@ QMenu:item:selected
   <action name="loadOutlinesAction">
    <property name="text">
     <string>Load outlines</string>
+   </property>
+  </action>
+  <action name="saveOutlinesAction">
+   <property name="text">
+    <string>Save outlines</string>
    </property>
   </action>
  </widget>
@@ -600,10 +606,26 @@ QMenu:item:selected
    </hints>
   </connection>
   <connection>
+   <sender>saveOutlinesAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>saveOutlines()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
    <sender>loadOutlinesAction</sender>
    <signal>triggered()</signal>
    <receiver>ImageViewer</receiver>
-   <slot>load()</slot>
+   <slot>loadOutlines()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -620,6 +642,7 @@ QMenu:item:selected
   <slot>open()</slot>
   <slot>save()</slot>
   <slot>undo()</slot>
-  <slot>load()</slot>
+  <slot>loadOutlines()</slot>
+  <slot>saveOutlines()</slot>
  </slots>
 </ui>
