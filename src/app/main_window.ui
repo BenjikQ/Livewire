@@ -119,6 +119,9 @@ QGraphicsView
    </property>
   </action>
   <action name="actionSaveAs">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>&amp;Save As...</string>
    </property>
@@ -127,6 +130,9 @@ QGraphicsView
    </property>
   </action>
   <action name="actionCloseFile">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Close File</string>
    </property>

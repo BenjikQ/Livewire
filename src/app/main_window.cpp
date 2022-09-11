@@ -28,15 +28,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
 
-    m_scene->installEventFilter(this);
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
+    m_scene->installEventFilter(this);
+
+    m_startSceneRect = m_scene->sceneRect();
 
     m_ui->view->setScene(m_scene);
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
-
-    m_startSceneRect = m_scene->sceneRect();
 
     setupIcons();
     setupStatusBar();
@@ -95,6 +95,9 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
         QImageReader reader{ filePath };
         m_image = reader.read();
 
+        m_ui->actionSaveAs->setEnabled(true);
+        m_ui->actionCloseFile->setEnabled(true);
+
         m_ui->view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
         m_scene->reset();
         m_scene->addPixmap(QPixmap::fromImage(m_image));
@@ -120,11 +123,16 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
 [[maybe_unused]] void MainWindow::closeImageFile() {
     m_image = {};
 
+    setWindowTitle(QCoreApplication::applicationName());
+
     m_scene->reset();
     m_scene->setSceneRect(m_startSceneRect);
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
     m_scene->enableDrawing(false);
+
+    m_ui->actionSaveAs->setEnabled(false);
+    m_ui->actionCloseFile->setEnabled(false);
 
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
