@@ -6,13 +6,14 @@
 
 QT_BEGIN_NAMESPACE
 class QEvent;
+class QGraphicsScene;
 class QLabel;
 class QMouseEvent;
+class QPointF;
 class QResizeEvent;
 class QString;
+class QUndoStack;
 QT_END_NAMESPACE
-
-class DiagramScene;
 
 // clang-format off
 namespace Ui { class MainWindow; }
@@ -33,9 +34,14 @@ protected:
     void closeEvent(QCloseEvent *closeEvent) override;
 
 private slots:
+    // File actions
     [[maybe_unused]] void openImageFile();
     [[maybe_unused]] void saveImageFile();
     [[maybe_unused]] void closeImageFile();
+
+    // Edit actions
+    [[maybe_unused]] void undo();
+    [[maybe_unused]] void redo();
 
 private:
     void setupIcons();
@@ -44,7 +50,11 @@ private:
     void setupIconsInStatusBar();
     void setupLabelsInStatusBar();
 
+    void addPoint(const QPointF &position);
+
 private:
+    bool m_drawing{ false };
+
     Ui::MainWindow *m_ui{ nullptr };
     QLabel *m_mouseCoordinatesIcon{ nullptr };
     QLabel *m_mouseCoordinatesLabel{ nullptr };
@@ -54,7 +64,8 @@ private:
     QImage m_image{};
 
     QRectF m_startSceneRect{};
-    DiagramScene *m_scene{ nullptr };
+    QGraphicsScene *m_scene{ nullptr };
+    QUndoStack *m_undoStack{ nullptr };
 };
 
 #endif  // MAIN_WINDOW_HPP

@@ -4,6 +4,7 @@
 #include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
 #include <QIcon>
@@ -13,18 +14,21 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QPointF>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
+#include <QUndoStack>
 
-#include "diagram_scene.hpp"
+#include "commands.h"
 #include "ui_main_window.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
     m_ui{ new Ui::MainWindow },
-    m_scene{ new DiagramScene(this) } {
+    m_scene{ new QGraphicsScene{ this } },
+    m_undoStack{ new QUndoStack{ this } } {
     m_ui->setupUi(this);
 
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
@@ -65,6 +69,33 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         const QString coordinates =
             QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
         m_mouseCoordinatesLabel->setText(coordinates);
+    } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress) {
+        const QGraphicsSceneMouseEvent *mousePressEvent =
+            static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+        addPoint(mousePressEvent->scenePos());
+
+
+        //        const auto position = mousePressEvent->scenePos();
+        //        float m_pointRadius = 8;
+        //        QColor m_pointColor = QColorConstants::Red;
+        //        float m_pointWidth = 1;
+        //        QColor m_pointInnerColor = QColorConstants::Red;
+        //        QColor m_pointOuterColor = QColorConstants::Black;
+        //
+        //        float m_lineWidth = 4;
+        //        QColor m_lineColor = QColorConstants::Green;
+        //
+        //        const QPointF topLeft = position - QPointF{ m_pointRadius / 2, m_pointRadius / 2 };
+        //        const QSizeF size{ m_pointRadius, m_pointRadius };
+        //
+        //        const QRectF rect{ { 0, 0 }, size };  // First argument needs to be null point
+        //
+        //        const QBrush inner{ m_pointInnerColor };
+        //        const QBrush outer{ m_pointOuterColor };
+        //        const QPen pen{ outer, m_pointWidth };
+        //
+        //        auto *m_lastPoint = m_scene->addEllipse(rect, pen, inner);
+        //        m_lastPoint->setPos(topLeft);  // then we manually set a desired location
     }
     return false;
 }
@@ -85,11 +116,8 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
 void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     closeEvent->ignore();
 
-    QMessageBox confirmExit{ QMessageBox::Question,
-                             "Confirm Exit",
-                             "Are you sure you want to exit?",
-                             QMessageBox::Yes | QMessageBox::No,
-                             this };
+    QMessageBox confirmExit{ QMessageBox::Question, "Confirm Exit", "Are you sure you want to exit?",
+                             QMessageBox::Yes | QMessageBox::No, this };
 
     if (confirmExit.exec() == QMessageBox::Yes) {
         closeEvent->accept();
@@ -114,10 +142,10 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
         m_ui->actionCloseFile->setEnabled(true);
 
         m_ui->view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-        m_scene->reset();
+        m_scene->clear();
         m_scene->addPixmap(QPixmap::fromImage(m_image));
         m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
-        m_scene->enableDrawing(true);
+        m_drawing = true;
     }
 }
 
@@ -140,11 +168,11 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
     setWindowTitle(QCoreApplication::applicationName());
 
-    m_scene->reset();
+    m_scene->clear();
     m_scene->setSceneRect(m_startSceneRect);
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
-    m_scene->enableDrawing(false);
+    m_drawing = false;
 
     m_ui->actionSaveAs->setEnabled(false);
     m_ui->actionCloseFile->setEnabled(false);
@@ -153,12 +181,26 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     m_ui->view->show();
 }
 
+[[maybe_unused]] void MainWindow::undo() {
+    m_undoStack->undo();
+}
+
+[[maybe_unused]] void MainWindow::redo() {
+    m_undoStack->redo();
+}
+
 void MainWindow::setupIcons() {
     QIcon icon{ ":/icons/data/icons/new.png" };  // Should be set in designer
     m_ui->actionOpen->setIcon(icon);
 
     icon = QIcon{ ":/icons/data/icons/save.png" };
     m_ui->actionSaveAs->setIcon(icon);
+
+    icon = QIcon{ ":/icons/data/icons/undo.png" };
+    m_ui->actionUndo->setIcon(icon);
+
+    icon = QIcon{ ":/icons/data/icons/redo.png" };
+    m_ui->actionRedo->setIcon(icon);
 
     icon = QIcon{ ":/icons/data/icons/app.png" };
     setWindowIcon(icon);
@@ -199,4 +241,9 @@ void MainWindow::setupLabelsInStatusBar() {
     m_screenSizeLabel->setStyleSheet("margin-bottom: 10px");
     const QString windowSize = QString::number(size().width()) + " × " + QString::number(size().height());
     m_screenSizeLabel->setText(windowSize);
+}
+
+void MainWindow::addPoint(const QPointF &position) {
+    QUndoCommand *addPointCommand = new AddCommand(position, m_scene);
+    m_undoStack->push(addPointCommand);
 }

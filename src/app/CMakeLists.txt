@@ -6,8 +6,8 @@ qt_add_executable(main
   main_window.ui
   main_window.cpp
   main_window.hpp
-  diagram_scene.cpp
-  diagram_scene.hpp)
+  commands.cpp
+  commands.h)
 target_link_libraries(main
   PRIVATE
     livewire
@@ -29,4 +29,6 @@ qt_add_resources(main "icons"
     "../../data/icons/new.png"
     "../../data/icons/save.png"
     "../../data/icons/screen.png"
-    "../../data/icons/app.png")
+    "../../data/icons/app.png"
+    "../../data/icons/undo.png"
+    "../../data/icons/redo.png")
