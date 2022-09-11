@@ -36,14 +36,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
 
-    QIcon icon{ ":/icons/data/images/new.png" };  // Should be set in designer
-    m_ui->actionOpen->setIcon(icon);
-
-    icon = QIcon{ ":/icons/data/images/save.png" };
-    m_ui->actionSaveAs->setIcon(icon);
-
     m_startSceneRect = m_scene->sceneRect();
 
+    setupIcons();
     setupStatusBar();
 }
 
@@ -135,6 +130,17 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
     m_ui->view->show();
 }
 
+void MainWindow::setupIcons() {
+    QIcon icon{ ":/icons/data/icons/new.png" };  // Should be set in designer
+    m_ui->actionOpen->setIcon(icon);
+
+    icon = QIcon{ ":/icons/data/icons/save.png" };
+    m_ui->actionSaveAs->setIcon(icon);
+
+    icon = QIcon{ ":/icons/data/icons/app.png" };
+    setWindowIcon(icon);
+}
+
 void MainWindow::setupStatusBar() {
     setupIconsInStatusBar();
     setupLabelsInStatusBar();
@@ -150,13 +156,13 @@ void MainWindow::setupStatusBar() {
 void MainWindow::setupIconsInStatusBar() {
     m_mouseCoordinatesIcon = new QLabel(this);
     m_mouseCoordinatesIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
-    QIcon icon{ ":/icons/data/images/mouse-coordinates.png" };
+    QIcon icon{ ":/icons/data/icons/mouse-coordinates.png" };
     QPixmap pixmap = icon.pixmap(QSize{ 16, 16 });
     m_mouseCoordinatesIcon->setPixmap(pixmap);
 
     m_screenSizeIcon = new QLabel(this);
     m_screenSizeIcon->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
-    icon = QIcon{ ":/icons/data/images/screen.png" };
+    icon = QIcon{ ":/icons/data/icons/screen.png" };
     pixmap = icon.pixmap(QSize{ 16, 16 });
     m_screenSizeIcon->setPixmap(pixmap);
 }

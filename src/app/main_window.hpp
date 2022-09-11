@@ -37,6 +37,7 @@ private slots:
     [[maybe_unused]] void closeImageFile();
 
 private:
+    void setupIcons();
     void setupStatusBar();
     //    void setupScene();
     void setupIconsInStatusBar();
