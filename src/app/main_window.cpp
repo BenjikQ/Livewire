@@ -29,20 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new QGraphicsScene{ this } },
     m_undoStack{ new QUndoStack{ this } } {
-    m_ui->setupUi(this);
-
-    new QShortcut(QKeySequence::Close, this, SLOT(close()));
-
-    const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
-    m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
-    m_scene->installEventFilter(this);
-
-    m_startSceneRect = m_scene->sceneRect();
-
-    m_ui->view->setScene(m_scene);
-    m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    m_ui->view->show();
-
+    setupSceneAndView();
     setupIcons();
     setupStatusBar();
 }
@@ -72,30 +59,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress) {
         const QGraphicsSceneMouseEvent *mousePressEvent =
             static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-        addPoint(mousePressEvent->scenePos());
-
-
-        //        const auto position = mousePressEvent->scenePos();
-        //        float m_pointRadius = 8;
-        //        QColor m_pointColor = QColorConstants::Red;
-        //        float m_pointWidth = 1;
-        //        QColor m_pointInnerColor = QColorConstants::Red;
-        //        QColor m_pointOuterColor = QColorConstants::Black;
-        //
-        //        float m_lineWidth = 4;
-        //        QColor m_lineColor = QColorConstants::Green;
-        //
-        //        const QPointF topLeft = position - QPointF{ m_pointRadius / 2, m_pointRadius / 2 };
-        //        const QSizeF size{ m_pointRadius, m_pointRadius };
-        //
-        //        const QRectF rect{ { 0, 0 }, size };  // First argument needs to be null point
-        //
-        //        const QBrush inner{ m_pointInnerColor };
-        //        const QBrush outer{ m_pointOuterColor };
-        //        const QPen pen{ outer, m_pointWidth };
-        //
-        //        auto *m_lastPoint = m_scene->addEllipse(rect, pen, inner);
-        //        m_lastPoint->setPos(topLeft);  // then we manually set a desired location
+        clickPoint(mousePressEvent->scenePos());
     }
     return false;
 }
@@ -179,6 +143,8 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
+
+    m_undoStack->clear();
 }
 
 [[maybe_unused]] void MainWindow::undo() {
@@ -187,6 +153,22 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
 [[maybe_unused]] void MainWindow::redo() {
     m_undoStack->redo();
+}
+
+void MainWindow::setupSceneAndView() {
+    m_ui->setupUi(this);
+
+    new QShortcut(QKeySequence::Close, this, SLOT(close()));
+
+    const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
+    m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
+    m_scene->installEventFilter(this);
+
+    m_startSceneRect = m_scene->sceneRect();
+
+    m_ui->view->setScene(m_scene);
+    m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    m_ui->view->show();
 }
 
 void MainWindow::setupIcons() {
@@ -243,7 +225,7 @@ void MainWindow::setupLabelsInStatusBar() {
     m_screenSizeLabel->setText(windowSize);
 }
 
-void MainWindow::addPoint(const QPointF &position) {
+void MainWindow::clickPoint(const QPointF &position) {
     QUndoCommand *addPointCommand = new AddCommand(position, m_scene);
     m_undoStack->push(addPointCommand);
 }

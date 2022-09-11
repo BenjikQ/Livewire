@@ -1,9 +1,11 @@
 #include "commands.h"
 
-#include <iostream>
-
+#include <QBrush>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsScene>
+#include <QPen>
+#include <QRectF>
+#include <QSizeF>
 
 AddCommand::AddCommand(const QPointF &position, QGraphicsScene *scene, QUndoCommand *parent) :
     QUndoCommand{ parent },

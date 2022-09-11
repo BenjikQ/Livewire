@@ -44,13 +44,13 @@ private slots:
     [[maybe_unused]] void redo();
 
 private:
+    void setupSceneAndView();
     void setupIcons();
     void setupStatusBar();
-    //    void setupScene();
     void setupIconsInStatusBar();
     void setupLabelsInStatusBar();
 
-    void addPoint(const QPointF &position);
+    void clickPoint(const QPointF &position);
 
 private:
     bool m_drawing{ false };
