@@ -58,14 +58,22 @@ void PaintArea::save(const QString &filePath, SaveOptions opts) {
     static constexpr QColor empty{ 0, 0, 0, 0 };
     QImageWriter writer(filePath);
     QImage resultImage = image;
+    QColor outFillColor;
+
+    if (opts.binarize) {
+        outFillColor = Qt::black;
+        resultImage.fill(Qt::white);
+    } else {
+        outFillColor = empty;
+    }
 
     if (opts.saveInside != opts.saveOutside) {
         for (int y = 0; y < image.height(); ++y)
             for (int x = 0; x < image.width(); ++x)
                 if (region[image.width() * y + x] == opts.saveOutside)
-                    resultImage.setPixelColor(x, y, empty);
+                    resultImage.setPixelColor(x, y, outFillColor);
     } else if (!opts.saveInside) {
-        resultImage.fill(empty);
+        resultImage.fill(outFillColor);
     }
 
     if (opts.savePath || opts.savePoints) {

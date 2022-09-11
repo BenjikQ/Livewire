@@ -20,6 +20,7 @@ SaveOptions PresaveDialog::getResult() const {
     opts.savePath = ui->savePath->isChecked();
     opts.savePoints = ui->savePoints->isChecked();
     opts.saveTextFile = ui->saveTextFile->isChecked();
+    opts.binarize = ui->binarize->isChecked();
 
     return opts;
 }

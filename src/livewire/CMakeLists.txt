@@ -22,4 +22,5 @@ target_sources(livewire
         image_graph.hpp
         typedefs.hpp
         utils.hpp
-        regions.hpp)
+        regions.hpp
+        jaccard.hpp)
