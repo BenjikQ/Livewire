@@ -30,6 +30,7 @@ public:
 protected:
     void mouseMoveEvent(QMouseEvent *mouseEvent) override;
     void resizeEvent(QResizeEvent *resizeEvent) override;
+    void closeEvent(QCloseEvent *closeEvent) override;
 
 private slots:
     [[maybe_unused]] void openImageFile();

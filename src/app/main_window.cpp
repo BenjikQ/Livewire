@@ -11,6 +11,7 @@
 #include <QImageWriter>
 #include <QKeySequence>
 #include <QLabel>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QShortcut>
 #include <QStandardPaths>
@@ -79,6 +80,20 @@ void MainWindow::resizeEvent(QResizeEvent *resizeEvent) {
     QMainWindow::resizeEvent(resizeEvent);
     const QString windowSize = QString::number(size().width()) + " × " + QString::number(size().height());
     m_screenSizeLabel->setText(windowSize);
+}
+
+void MainWindow::closeEvent(QCloseEvent *closeEvent) {
+    closeEvent->ignore();
+
+    QMessageBox confirmExit{ QMessageBox::Question,
+                             "Confirm Exit",
+                             "Are you sure you want to exit?",
+                             QMessageBox::Yes | QMessageBox::No,
+                             this };
+
+    if (confirmExit.exec() == QMessageBox::Yes) {
+        closeEvent->accept();
+    }
 }
 
 [[maybe_unused]] void MainWindow::openImageFile() {
