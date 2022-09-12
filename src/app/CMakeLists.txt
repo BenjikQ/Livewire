@@ -7,7 +7,7 @@ qt_add_executable(main
   main_window.cpp
   main_window.hpp
   commands.cpp
-  commands.h)
+    commands.hpp)
 target_link_libraries(main
   PRIVATE
     livewire

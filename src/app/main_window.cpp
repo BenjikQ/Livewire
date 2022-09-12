@@ -1,5 +1,7 @@
 #include "main_window.hpp"
 
+#include <iostream>
+
 #include <QDir>
 #include <QEvent>
 #include <QFileDialog>
@@ -21,7 +23,7 @@
 #include <QStyle>
 #include <QUndoStack>
 
-#include "commands.h"
+#include "commands.hpp"
 #include "ui_main_window.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -35,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
+    if (m_line && !m_line->scene()) {
+        delete m_line;
+    }
+    delete m_undoStack;
+    delete m_scene;
     delete m_ui;
 }
 
@@ -42,23 +49,17 @@ MainWindow::~MainWindow() {
 // in order to update label with a mouse position
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
-        const QGraphicsSceneMouseEvent *mouseMoveEvent =
-            static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-
-        // if image was not read we need to calculate position in different way
-        // because the (0, 0) is now next to the center of the scene
-        // thus displaying negative values in left-top part when moving cursor
-        // it was tested empirically
-        // should have been calculated based on scene intro text
-        const QPoint sceneOffset{ size().width() / 2 - 191, size().height() / 2 - 48 };
-        const QPointF mousePosition =
-            m_image.isNull() ? mouseMoveEvent->scenePos() + sceneOffset : mouseMoveEvent->scenePos();
-        const QString coordinates =
-            QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
-        m_mouseCoordinatesLabel->setText(coordinates);
+        const auto *mouseMoveEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
+        updateLabel(mouseMoveEvent->scenePos());
+        if (m_drawing) {
+            if (m_numberOfPoints > 0) {  // When point was clicked we can now draw a line
+                drawEdge(mouseMoveEvent->scenePos());
+            } else if (m_line && m_line->scene()) {  // When there are fewer points we might need to remove the line
+                m_scene->removeItem(m_line);
+            }
+        }
     } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress) {
-        const QGraphicsSceneMouseEvent *mousePressEvent =
-            static_cast<QGraphicsSceneMouseEvent *>(event);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+        const auto *mousePressEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
         clickPoint(mousePressEvent->scenePos());
     }
     return false;
@@ -132,21 +133,29 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
     setWindowTitle(QCoreApplication::applicationName());
 
+    if (m_line && m_line->scene()) {
+        m_scene->removeItem(m_line);
+    }
+
+    m_undoStack->clear();
+
     m_scene->clear();
     m_scene->setSceneRect(m_startSceneRect);
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_scene->addText("Press " + openShortcut + " to open a file...")->setDefaultTextColor(Qt::white);
     m_drawing = false;
+    m_numberOfPoints = 0;
 
     m_ui->actionSaveAs->setEnabled(false);
     m_ui->actionCloseFile->setEnabled(false);
 
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     m_ui->view->show();
-
-    m_undoStack->clear();
 }
 
+// We need to remove drawn line when there are less than two points
+// We do it when total number of items in scene is equal three,
+// because then there are only an image, currently drawn line one point
 [[maybe_unused]] void MainWindow::undo() {
     m_undoStack->undo();
 }
@@ -225,7 +234,38 @@ void MainWindow::setupLabelsInStatusBar() {
     m_screenSizeLabel->setText(windowSize);
 }
 
+void MainWindow::updateLabel(const QPointF &position) {
+    // if image was not read we need to calculate position in different way
+    // because the (0, 0) is now next to the center of the scene
+    // thus displaying negative values in left-top part when moving cursor
+    // it was tested empirically
+    // should have been calculated based on scene intro text
+    const QPoint sceneOffset{ size().width() / 2 - 191, size().height() / 2 - 48 };
+    const QPointF mousePosition = m_image.isNull() ? position + sceneOffset : position;
+    const QString coordinates = QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
+    m_mouseCoordinatesLabel->setText(coordinates);
+}
+
 void MainWindow::clickPoint(const QPointF &position) {
-    QUndoCommand *addPointCommand = new AddCommand(position, m_scene);
+    QUndoCommand *addPointCommand = new AddCommand(position, m_numberOfPoints, m_scene);
     m_undoStack->push(addPointCommand);
+}
+
+void MainWindow::drawEdge(const QPointF &position) {
+    constexpr float pointRadius = 8;  // TODO: Set drawing parameter only in one place
+    // For some reason when there is only one point on the scene it returns position of image
+    // In other cases it returns position of last point
+    const QPointF pointPosition{ m_numberOfPoints == 1 ? m_scene->items()[1]->pos() : m_scene->items().first()->pos() };
+    const QPointF begin{ pointPosition + QPointF{ pointRadius / 2, pointRadius / 2 } };
+    const QLineF line{ begin, position };
+    const QBrush brush{ QColorConstants::Red };
+    const QPen pen{ brush, 4 };
+    if (!m_line) {
+        m_line = m_scene->addLine(line, pen);
+    } else {
+        if (!m_line->scene()) {
+            m_scene->addItem(m_line);
+        }
+        m_line->setLine(line);
+    }
 }

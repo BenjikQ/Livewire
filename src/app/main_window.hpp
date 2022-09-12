@@ -6,6 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 class QEvent;
+class QGraphicsLineItem;
 class QGraphicsScene;
 class QLabel;
 class QMouseEvent;
@@ -50,7 +51,10 @@ private:
     void setupIconsInStatusBar();
     void setupLabelsInStatusBar();
 
+    void updateLabel(const QPointF &position);
+
     void clickPoint(const QPointF &position);
+    void drawEdge(const QPointF &position);
 
 private:
     bool m_drawing{ false };
@@ -65,7 +69,9 @@ private:
 
     QRectF m_startSceneRect{};
     QGraphicsScene *m_scene{ nullptr };
+    QGraphicsLineItem *m_line{ nullptr };
     QUndoStack *m_undoStack{ nullptr };
+    int m_numberOfPoints{};
 };
 
 #endif  // MAIN_WINDOW_HPP

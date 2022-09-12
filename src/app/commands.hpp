@@ -1,5 +1,5 @@
-#ifndef LIVEWIRE_COMMANDS_H
-#define LIVEWIRE_COMMANDS_H
+#ifndef LIVEWIRE_COMMANDS_HPP
+#define LIVEWIRE_COMMANDS_HPP
 
 #include <QColor>
 #include <QPointF>
@@ -13,7 +13,7 @@ QT_END_NAMESPACE
 
 class AddCommand : public QUndoCommand {
 public:
-    AddCommand(const QPointF &position, QGraphicsScene *scene, QUndoCommand *parent = nullptr);
+    AddCommand(const QPointF &position, int &numberOfPoints, QGraphicsScene *scene, QUndoCommand *parent = nullptr);
     ~AddCommand() override;
 
     void undo() override;
@@ -22,11 +22,13 @@ public:
 private:
     QGraphicsScene *m_scene;
     QGraphicsEllipseItem *m_item;
+    int& m_numberOfPoints;
 
     float m_pointRadius = 8;
     float m_pointWidth = 1;
+    QPointF topLeft{};
     QColor m_pointInnerColor = QColorConstants::Red;
     QColor m_pointOuterColor = QColorConstants::Black;
 };
 
-#endif  // LIVEWIRE_COMMANDS_H
+#endif  // LIVEWIRE_COMMANDS_HPP
