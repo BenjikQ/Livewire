@@ -23,6 +23,7 @@ public:
     void setPenColor(const QColor &color);
 
     void finalizePath();
+    QImage composeImage(SaveOptions opts);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -64,7 +65,7 @@ private:
     PathData getConfirmedPoints() const;
     void floodFillRegion(const PathData &pd, Point origin);
     void paintPathComponents(QPainter &painter, bool paintCurrent = true,
-                         bool paintPath = true, bool paintPoints = true);
+                             bool paintPath = true, bool paintPoints = true);
 };
 
 #endif  // PAINTAREA_HPP

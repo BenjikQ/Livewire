@@ -1,12 +1,15 @@
 #include "image_viewer.hpp"
 
 #include <QFileDialog>
+#include <QImageReader>
 #include <QMap>
 #include <QShortcut>
 #include <QStandardPaths>
 
+#include "comparison_display.hpp"
 #include "paint_area.hpp"
 #include "presave_dialog.hpp"
+#include "processing.hpp"
 #include "ui_image_viewer.h"
 
 // static const QMap<QString, QColor> colors{
@@ -26,6 +29,7 @@ ImageViewer::ImageViewer(QWidget *parent) :
     QMainWindow(parent),
     paintArea(new PaintArea(this)),
     presaveDialog(new PresaveDialog(this)),
+    compDisplay(new ComparisonDisplay(this)),
     ui(new Ui::ImageViewer) {
     ui->setupUi(this);
     new QShortcut(Qt::CTRL | Qt::Key_W, this, SLOT(close()));
@@ -156,13 +160,11 @@ void ImageViewer::saveOutlines() {
         QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
     static const QString homeDirectory =
         homePath.first().split(QDir::separator()).last();
-    const QString filePath =
-        QFileDialog::getSaveFileName(this, tr("Open Image"), homeDirectory,
-                                     tr("Text files (*.txt)"));
+    const QString filePath = QFileDialog::getSaveFileName(
+        this, tr("Open Image"), homeDirectory, tr("Text files (*.txt)"));
     if (!filePath.isEmpty()) {
         paintArea->saveOutlines(filePath);
     }
-
 }
 
 void ImageViewer::loadOutlines() {
@@ -181,3 +183,23 @@ void ImageViewer::loadOutlines() {
 void ImageViewer::closePath() { paintArea->finalizePath(); }
 
 void ImageViewer::undo() { paintArea->undo(); }
+
+void ImageViewer::compareJaccard() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath = QFileDialog::getOpenFileName(
+        this, tr("Select image to compare with"), homeDirectory,
+        tr("Image Files (*.png *.jpg *.bmp)"));
+    if (filePath.isEmpty()) return;
+
+    QImageReader selectedReader(filePath);
+    QImage selected = selectedReader.read();
+    QImage region =
+        paintArea->composeImage({ true, false, false, false, true });
+    const auto data = compareImagesJaccard(selected, region);
+
+    compDisplay->prepareDisplay(selected, region, data);
+    compDisplay->exec();
+}

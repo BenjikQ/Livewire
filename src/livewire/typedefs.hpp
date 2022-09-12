@@ -8,6 +8,10 @@
 #include <vector>
 
 constexpr double INF = std::numeric_limits<double>::infinity();
+constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
+
+constexpr std::string_view JACCARD_TEMP_NAME = "jlwtemp";
+constexpr std::string_view JACCARD_COMP_NAME = "jlwcomp";
 
 enum Dir {
     RIGHT,

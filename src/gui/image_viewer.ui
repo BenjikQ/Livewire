@@ -50,8 +50,8 @@ QMenu:item:selected
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>282</width>
-         <height>528</height>
+         <width>285</width>
+         <height>539</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -498,7 +498,7 @@ QMenu:item:selected
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -516,8 +516,15 @@ QMenu:item:selected
     </property>
     <addaction name="undoAction"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="compareBinaryAction"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="openFileAction">
@@ -552,6 +559,11 @@ QMenu:item:selected
   <action name="saveOutlinesAction">
    <property name="text">
     <string>Save outlines</string>
+   </property>
+  </action>
+  <action name="compareBinaryAction">
+   <property name="text">
+    <string>Compare binary images</string>
    </property>
   </action>
  </widget>
@@ -637,6 +649,22 @@ QMenu:item:selected
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>compareBinaryAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>compareJaccard()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open()</slot>
@@ -644,5 +672,6 @@ QMenu:item:selected
   <slot>undo()</slot>
   <slot>loadOutlines()</slot>
   <slot>saveOutlines()</slot>
+  <slot>compareJaccard()</slot>
  </slots>
 </ui>

@@ -51,33 +51,8 @@ void PaintArea::saveOutlines(const QString &filePath) {
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {
-    static constexpr QColor empty{ 0, 0, 0, 0 };
     QImageWriter writer(filePath);
-    QImage resultImage = image;
-    QColor outFillColor;
-
-    if (opts.binarize) {
-        outFillColor = Qt::black;
-        resultImage.fill(Qt::white);
-    } else {
-        outFillColor = empty;
-    }
-
-    if (opts.saveInside != opts.saveOutside) {
-        for (int y = 0; y < image.height(); ++y)
-            for (int x = 0; x < image.width(); ++x)
-                if (region[image.width() * y + x] == opts.saveOutside)
-                    resultImage.setPixelColor(x, y, outFillColor);
-    } else if (!opts.saveInside) {
-        resultImage.fill(outFillColor);
-    }
-
-    if (opts.savePath || opts.savePoints) {
-        QPainter painter(&resultImage);
-        paintPathComponents(painter, false, opts.savePath, opts.savePoints);
-    }
-
-    writer.write(resultImage);
+    writer.write(composeImage(opts));
 }
 
 void PaintArea::undo() {
@@ -321,4 +296,33 @@ void PaintArea::paintPathComponents(QPainter &painter, bool paintCurrent,
             }
         }
     }
+}
+
+QImage PaintArea::composeImage(SaveOptions opts) {
+    static constexpr QColor empty{ 0, 0, 0, 0 };
+    QImage resultImage = image;
+    QColor outFillColor;
+
+    if (opts.binarize) {
+        outFillColor = Qt::black;
+        resultImage.fill(Qt::white);
+    } else {
+        outFillColor = empty;
+    }
+
+    if (opts.saveInside != opts.saveOutside) {
+        for (int y = 0; y < image.height(); ++y)
+            for (int x = 0; x < image.width(); ++x)
+                if (region[image.width() * y + x] == opts.saveOutside)
+                    resultImage.setPixelColor(x, y, outFillColor);
+    } else if (!opts.saveInside) {
+        resultImage.fill(outFillColor);
+    }
+
+    if (opts.savePath || opts.savePoints) {
+        QPainter painter(&resultImage);
+        paintPathComponents(painter, false, opts.savePath, opts.savePoints);
+    }
+
+    return resultImage;
 }

@@ -7,7 +7,11 @@ set(PROJECT_SOURCES
         paint_area.hpp
         presave_dialog.hpp
         presave_dialog.cpp
-        io.hpp)
+        comparison_display.hpp
+        comparison_display.cpp
+        io.hpp
+        processing.hpp
+        processing.cpp)
 
 qt_add_executable(livewire_gui
     MANUAL_FINALIZATION

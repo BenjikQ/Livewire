@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include "typedefs.hpp"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class ImageViewer;
@@ -11,6 +13,7 @@ QT_END_NAMESPACE
 
 class PaintArea;
 class PresaveDialog;
+class ComparisonDisplay;
 
 class ImageViewer : public QMainWindow {
     Q_OBJECT
@@ -26,12 +29,14 @@ private slots:
     void loadOutlines();
     void closePath();
     void undo();
+    void compareJaccard();
 
 private:
     void loadImage(const QString &filePath);
 
     PaintArea *paintArea;
     PresaveDialog *presaveDialog;
+    ComparisonDisplay *compDisplay;
     Ui::ImageViewer *ui;
 };
 
