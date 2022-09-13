@@ -5,6 +5,7 @@
 #include <QImageWriter>
 #include <QMouseEvent>
 #include <QPainter>
+#include <numeric>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <queue>
@@ -46,8 +47,92 @@ void PaintArea::loadOutlines(const QString &filePath) {
     update();
 }
 
+void PaintArea::loadOutlinesWithColors(const QString &filePath) {
+    pathsLengths.clear();
+    pathsWidths.clear();
+    pathsColors.clear();
+    points.clear();
+    currentPath.clear();
+
+    std::ifstream file(filePath.toStdString());
+    int size;
+    file >> size;
+
+    pathsLengths.reserve(size);
+    pathsWidths.reserve(size);
+    pathsColors.reserve(size);
+    points.reserve(size);
+
+    for (int i = 0; i < size; ++i) {
+        int pathLength;
+        file >> pathLength;
+        pathsLengths.push_back(pathLength);
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int pathWidth;
+        file >> pathWidth;
+        pathsWidths.push_back(pathWidth);
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int r, g, b;
+        file >> r >> g >> b;
+        pathsColors.push_back(QColor::fromRgb(r, g, b));
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int x, y;
+        file >> x >> y;
+        points.push_back({ x, y });
+    }
+
+    const auto totalLength =
+        std::accumulate(pathsLengths.cbegin(), pathsLengths.cend(), 0);
+    currentPath.reserve(totalLength);
+    for (int i = 0; i < totalLength; ++i) {
+        int x, y;
+        file >> x >> y;
+        currentPath.push_back({ x, y });
+    }
+
+    lastPoint = currentPath.last();
+
+    update();
+}
+
 void PaintArea::saveOutlines(const QString &filePath) {
     writePointsToTextC(currentPath, filePath.toStdString().c_str());
+
+    const auto baseName = QFileInfo(filePath).baseName();
+    const auto extension = QFileInfo(filePath).completeSuffix();
+    const auto path = QFileInfo(filePath).absolutePath();
+    const auto fileName = path + "/" + baseName + "_c." + extension;
+    std::ofstream outFile(fileName.toStdString());
+
+    // saving number of paths
+    outFile << pathsLengths.size() << '\n';
+
+    for (auto pathLength : pathsLengths)
+        outFile << pathLength << ' ';
+    outFile << '\n';
+
+    for (auto pathWidth : pathsWidths)
+        outFile << pathWidth << ' ';
+    outFile << '\n';
+
+    for (const auto &pathColor : pathsColors)
+        outFile << pathColor.red() << ' ' << pathColor.green() << ' '
+                << pathColor.blue() << ' ';
+    outFile << '\n';
+
+    for (const auto &point : points)
+        outFile << point.x() << ' ' << point.y() << ' ';
+    outFile << '\n';
+
+    for (const auto &point : currentPath)
+        outFile << point.x() << ' ' << point.y() << '\n';
+    outFile << '\n';
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {

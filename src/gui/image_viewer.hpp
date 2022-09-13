@@ -27,6 +27,7 @@ private slots:
     void save();
     void saveOutlines();
     void loadOutlines();
+    void loadOutlinesWithColors();
     void closePath();
     void undo();
     void compareJaccard();

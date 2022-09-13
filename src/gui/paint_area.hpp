@@ -16,6 +16,7 @@ public:
     void open(const QString &filePath);
     void save(const QString &filePath, SaveOptions opts);
     void loadOutlines(const QString &filePath);
+    void loadOutlinesWithColors(const QString &filePath);
     void saveOutlines(const QString &filePath);
     void undo();
 

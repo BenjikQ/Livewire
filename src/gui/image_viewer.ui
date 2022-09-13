@@ -50,8 +50,8 @@ QMenu:item:selected
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>285</width>
-         <height>539</height>
+         <width>282</width>
+         <height>528</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -498,7 +498,7 @@ QMenu:item:selected
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -506,8 +506,9 @@ QMenu:item:selected
      <string>File</string>
     </property>
     <addaction name="openFileAction"/>
-    <addaction name="loadOutlinesAction"/>
     <addaction name="saveOutlinesAction"/>
+    <addaction name="loadOutlinesAction"/>
+    <addaction name="loadOutlinesWithColorsAction"/>
     <addaction name="saveAsAction"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -564,6 +565,11 @@ QMenu:item:selected
   <action name="compareBinaryAction">
    <property name="text">
     <string>Compare binary images</string>
+   </property>
+  </action>
+  <action name="loadOutlinesWithColorsAction">
+   <property name="text">
+    <string>Load outlines with colors</string>
    </property>
   </action>
  </widget>
@@ -665,6 +671,22 @@ QMenu:item:selected
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>loadOutlinesWithColorsAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>loadOutlinesWithColors()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open()</slot>
@@ -673,5 +695,6 @@ QMenu:item:selected
   <slot>loadOutlines()</slot>
   <slot>saveOutlines()</slot>
   <slot>compareJaccard()</slot>
+  <slot>loadOutlinesWithColors()</slot>
  </slots>
 </ui>

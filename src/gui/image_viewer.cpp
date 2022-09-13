@@ -180,6 +180,19 @@ void ImageViewer::loadOutlines() {
     }
 }
 
+void ImageViewer::loadOutlinesWithColors() {
+    static const QStringList homePath =
+        QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+    static const QString homeDirectory =
+        homePath.first().split(QDir::separator()).last();
+    const QString filePath =
+        QFileDialog::getOpenFileName(this, tr("Open outlines with colors file"),
+                                     homeDirectory, tr("Text files (*.txt)"));
+    if (!filePath.isEmpty()) {
+        paintArea->loadOutlinesWithColors(filePath);
+    }
+}
+
 void ImageViewer::closePath() { paintArea->finalizePath(); }
 
 void ImageViewer::undo() { paintArea->undo(); }
