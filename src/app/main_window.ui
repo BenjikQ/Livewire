@@ -113,6 +113,10 @@ QGraphicsView
    </property>
   </widget>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/new.png</normaloff>../../data/icons/new.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Open...</string>
    </property>
@@ -130,6 +134,10 @@ QGraphicsView
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/save.png</normaloff>../../data/icons/save.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Save As...</string>
    </property>
@@ -146,6 +154,10 @@ QGraphicsView
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/undo.png</normaloff>../../data/icons/undo.png</iconset>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -154,6 +166,10 @@ QGraphicsView
    </property>
   </action>
   <action name="actionRedo">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/redo.png</normaloff>../../data/icons/redo.png</iconset>
+   </property>
    <property name="text">
     <string>Redo</string>
    </property>

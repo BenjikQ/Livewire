@@ -6,14 +6,17 @@
 #include <QUndoCommand>
 
 QT_BEGIN_NAMESPACE
-class QGraphicsEllipseItem;
 class QGraphicsScene;
 class QUndoCommand;
 QT_END_NAMESPACE
 
+class PointItem;
+struct PainterOptions;
+
 class AddCommand : public QUndoCommand {
 public:
-    AddCommand(const QPointF &position, int &numberOfPoints, QGraphicsScene *scene, QUndoCommand *parent = nullptr);
+    AddCommand(const PainterOptions &options, int &numberOfPoint, QGraphicsScene *scene,
+               QUndoCommand *parent = nullptr);
     ~AddCommand() override;
 
     void undo() override;
@@ -21,14 +24,8 @@ public:
 
 private:
     QGraphicsScene *m_scene;
-    QGraphicsEllipseItem *m_item;
-    int& m_numberOfPoints;
-
-    float m_pointRadius = 8;
-    float m_pointWidth = 1;
-    QPointF topLeft{};
-    QColor m_pointInnerColor = QColorConstants::Red;
-    QColor m_pointOuterColor = QColorConstants::Black;
+    PointItem *m_item;
+    int &m_numberOfPoints;
 };
 
 #endif  // LIVEWIRE_COMMANDS_HPP

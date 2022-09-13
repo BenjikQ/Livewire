@@ -7,6 +7,8 @@ project(Livewire
 include(CheckIPOSupported)
 check_ipo_supported()
 
+find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -15,7 +17,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)
-
 add_subdirectory(configured_files)
 add_subdirectory(src)
+
+qt_finalize_project()

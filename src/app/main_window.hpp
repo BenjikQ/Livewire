@@ -45,12 +45,16 @@ private slots:
     [[maybe_unused]] void redo();
 
 private:
-    void setupSceneAndView();
-    void setupIcons();
+    void setupUi();
+    void setupSceneText();
+    void setupSceneImage();
+    void setupTextView();
+    void setupImageView();
     void setupStatusBar();
-    void setupIconsInStatusBar();
-    void setupLabelsInStatusBar();
+    void setupActions(bool enabled);
 
+    void createTextLabel(QLabel *&textLabel, const QString &text = "", int width = 0);
+    void createIconLabel(QLabel *&iconLabel, const QString &iconPath);
     void updateLabel(const QPointF &position);
 
     void clickPoint(const QPointF &position);
@@ -59,19 +63,19 @@ private:
 private:
     bool m_drawing{ false };
 
-    Ui::MainWindow *m_ui{ nullptr };
-    QLabel *m_mouseCoordinatesIcon{ nullptr };
-    QLabel *m_mouseCoordinatesLabel{ nullptr };
-    QLabel *m_screenSizeIcon{ nullptr };
-    QLabel *m_screenSizeLabel{ nullptr };
+    Ui::MainWindow *m_ui;
+    QLabel *m_mouseCoordinatesIcon;
+    QLabel *m_mouseCoordinatesLabel;
+    QLabel *m_screenSizeIcon;
+    QLabel *m_screenSizeLabel;
 
-    QImage m_image{};
+    QImage m_image;
 
-    QRectF m_startSceneRect{};
-    QGraphicsScene *m_scene{ nullptr };
+    QRectF m_initialSceneRect{};
+    QGraphicsScene *m_scene;
     QGraphicsLineItem *m_line{ nullptr };
-    QUndoStack *m_undoStack{ nullptr };
-    int m_numberOfPoints{};
+    QUndoStack *m_undoStack;
+    int m_numberOfPoints;
 };
 
 #endif  // MAIN_WINDOW_HPP

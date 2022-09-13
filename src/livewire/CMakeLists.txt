@@ -1,3 +1,3 @@
-add_library(livewire)
-target_include_directories(livewire PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(livewire PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+#add_library(livewire)
+#target_include_directories(livewire PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#set_target_properties(livewire PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
