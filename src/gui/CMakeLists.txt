@@ -9,6 +9,8 @@ set(PROJECT_SOURCES
         presave_dialog.cpp
         comparison_display.hpp
         comparison_display.cpp
+        image_label.hpp
+        image_label.cpp
         io.hpp
         processing.hpp
         processing.cpp)

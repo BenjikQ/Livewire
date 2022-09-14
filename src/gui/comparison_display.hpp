@@ -5,6 +5,7 @@
 #include <QFrame>
 #include <vector>
 
+#include "image_label.hpp"
 #include "processing.hpp"
 
 namespace Ui {
@@ -23,8 +24,9 @@ public:
 
 private:
     Ui::ComparisonDisplay *ui;
+    ImageLabel *loadedLabel, *selectionLabel, *compLabel;
 
-    static void setFrameBg(QFrame *frame, const QImage &img);
+    ImageLabel *createImageLabel();
 };
 
 #endif  // COMPARISON_DISPLAY_HPP
