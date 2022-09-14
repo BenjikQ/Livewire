@@ -12,8 +12,8 @@ PointItem::PointItem(const PainterOptions &options, QGraphicsItem *parent) :
     m_position{ options.position },
     m_radius{ options.radius },
     m_width{ options.width } {
-    const QBrush inner{ options.innerColor };
-    const QBrush outer{ options.outerColor };
+    const QBrush inner{ options.firstColor };
+    const QBrush outer{ options.secondColor };
     const QPen pen{ outer, m_width };
     setPen(pen);
     setBrush(inner);

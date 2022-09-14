@@ -1,16 +1,23 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
+#include <memory>
+
 #include <QImage>
 #include <QMainWindow>
 
+#include <opencv2/core/mat.hpp>
+
+#include "cost_functions.hpp"
+#include "graph.hpp"
+#include "path_item.hpp"
+
 QT_BEGIN_NAMESPACE
 class QEvent;
-class QGraphicsLineItem;
 class QGraphicsScene;
 class QLabel;
 class QMouseEvent;
-class QPointF;
+class QPoint;
 class QResizeEvent;
 class QString;
 class QUndoStack;
@@ -55,10 +62,10 @@ private:
 
     void createTextLabel(QLabel *&textLabel, const QString &text = "", int width = 0);
     void createIconLabel(QLabel *&iconLabel, const QString &iconPath);
-    void updateLabel(const QPointF &position);
+    void updateLabel(const QPoint &position);
 
-    void clickPoint(const QPointF &position);
-    void drawEdge(const QPointF &position);
+    void clickPoint(const QPoint &position);
+    void drawPath(const QPoint &position);
 
 private:
     bool m_drawing{ false };
@@ -70,10 +77,12 @@ private:
     QLabel *m_screenSizeLabel;
 
     QImage m_image;
+    cv::Mat m_imageGray;
+    std::unique_ptr<DiagonalGraph<CostFunction>> m_graph{ nullptr };
 
     QRectF m_initialSceneRect{};
     QGraphicsScene *m_scene;
-    QGraphicsLineItem *m_line{ nullptr };
+    PathItem *m_path{ nullptr };
     QUndoStack *m_undoStack;
     int m_numberOfPoints;
 };

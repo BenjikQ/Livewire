@@ -1,5 +1,7 @@
 #include "main_window.hpp"
 
+#include <algorithm>
+
 #include <QDir>
 #include <QEvent>
 #include <QFileDialog>
@@ -14,16 +16,24 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QMouseEvent>
-#include <QPointF>
+#include <QPoint>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
 #include <QUndoStack>
 
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "commands.hpp"
 #include "painter_options.hpp"
 #include "ui_main_window.h"
+
+static const QString caption{ "Open Image" };
+static const QStringList homePath{ QStandardPaths::standardLocations(QStandardPaths::HomeLocation) };
+static const QString homeDirectory{ homePath.first().split(QDir::separator()).last() };
+static const QString filter{ "Image Files (*.png *.jpg *.bmp)" };
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
@@ -39,37 +49,39 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
-    if (m_line && !m_line->scene()) {
-        delete m_line;
+    if (m_path && !m_path->scene()) {
+        delete m_path;
     }
     delete m_undoStack;
     delete m_scene;
     delete m_ui;
 }
 
-// Capture mouse move over scene
-// in order to update label with a mouse position
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
     if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
         const auto *mouseMoveEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
-        updateLabel(mouseMoveEvent->scenePos());
+        const double x{ mouseMoveEvent->scenePos().x() };
+        const double y{ mouseMoveEvent->scenePos().y() };
+        const QPoint mousePosition{ static_cast<int>(x), static_cast<int>(y) };
+        updateLabel(mousePosition);
+
         if (m_drawing) {
-            if (m_numberOfPoints > 0) {  // When point was clicked we can now draw a line
-                drawEdge(mouseMoveEvent->scenePos());
-            } else if (m_line && m_line->scene()) {  // When there are fewer points we might need to remove the line
-                m_scene->removeItem(m_line);
+            if (m_numberOfPoints > 0) {
+                drawPath(mousePosition);
+            } else if (m_path && m_path->scene()) {
+                m_scene->removeItem(m_path);
             }
         }
     } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress) {
         const auto *mousePressEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
-        clickPoint(mousePressEvent->scenePos());
+        const double x{ mousePressEvent->scenePos().x() };
+        const double y{ mousePressEvent->scenePos().y() };
+        const QPoint mousePosition{ static_cast<int>(x), static_cast<int>(y) };
+        clickPoint(mousePosition);
     }
     return false;
 }
 
-// Clearing label when mouse left scene
-// Remember to set mouseTracking in all sub widgets
-// in ui designer or by calling setMouseTracking(true)
 void MainWindow::mouseMoveEvent(QMouseEvent *mouseEvent) {
     m_mouseCoordinatesLabel->clear();
 }
@@ -84,22 +96,19 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     closeEvent->ignore();
     QMessageBox confirmExit{ QMessageBox::Question, "Confirm Exit", "Are you sure you want to exit?",
                              QMessageBox::Yes | QMessageBox::No, this };
-
     if (confirmExit.exec() == QMessageBox::Yes) {
         closeEvent->accept();
     }
 }
 
 [[maybe_unused]] void MainWindow::openImageFile() {
-    static const QString caption = tr("Open Image");
-    static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-    static const QString homeDirectory = homePath.first().split(QDir::separator()).last();
-    static const QString filter = tr("Image Files (*.png *.jpg *.bmp)");
-
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
         QImageReader reader{ filePath };
         m_image = reader.read();
+        cv::Mat temp = cv::imread(filePath.toStdString());
+        cv::cvtColor(temp, m_imageGray, cv::COLOR_BGR2GRAY);
+        m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
         setupSceneImage();
         setupImageView();
         const QFileInfo info{ filePath };
@@ -109,11 +118,6 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 }
 
 [[maybe_unused]] void MainWindow::saveImageFile() {
-    static const QString caption = tr("Save Image");
-    static const QStringList homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-    static const QString homeDirectory = homePath.first().split(QDir::separator()).last();
-    static const QString filter = tr("Image Files (*.png *.jpg *.bmp)");
-
     const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
         QImageWriter writer{ filePath };
@@ -129,9 +133,6 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     setWindowTitle(QCoreApplication::applicationName());
 }
 
-// We need to remove drawn line when there are less than two points
-// We do it when total number of items in scene is equal three,
-// because then there are only an image, currently drawn line one point
 [[maybe_unused]] void MainWindow::undo() {
     m_undoStack->undo();
 }
@@ -150,8 +151,8 @@ void MainWindow::setupUi() {
 void MainWindow::setupSceneText() {
     m_image = {};
     m_numberOfPoints = 0;
-    if (m_line && m_line->scene()) {
-        m_scene->removeItem(m_line);
+    if (m_path && m_path->scene()) {
+        m_scene->removeItem(m_path);
     }
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_undoStack->clear();
@@ -164,8 +165,8 @@ void MainWindow::setupSceneText() {
 
 void MainWindow::setupSceneImage() {
     m_numberOfPoints = 0;
-    if (m_line && m_line->scene()) {
-        m_scene->removeItem(m_line);
+    if (m_path && m_path->scene()) {
+        m_scene->removeItem(m_path);
     }
     m_undoStack->clear();
     m_scene->clear();
@@ -219,7 +220,7 @@ void MainWindow::createIconLabel(QLabel *&iconLabel, const QString &iconPath) {
     statusBar()->addWidget(iconLabel);
 }
 
-void MainWindow::updateLabel(const QPointF &position) {
+void MainWindow::updateLabel(const QPoint &position) {
     // if image was not read we need to calculate position in different way
     // because the (0, 0) is now next to the center of the scene
     // thus displaying negative values in left-top part when moving cursor
@@ -231,27 +232,39 @@ void MainWindow::updateLabel(const QPointF &position) {
     m_mouseCoordinatesLabel->setText(coordinates);
 }
 
-void MainWindow::clickPoint(const QPointF &position) {
-    const PainterOptions pointOptions{
-        .position = position, .innerColor = Qt::red, .outerColor = Qt::black, .width = 1, .radius = 4
-    };
+void MainWindow::clickPoint(const QPoint &position) {
+    const PainterOptions pointOptions{ position, Qt::red, Qt::black, 1, 4 };
     QUndoCommand *addPointCommand = new AddCommand(pointOptions, m_numberOfPoints, m_scene);
     m_undoStack->push(addPointCommand);
 }
 
-void MainWindow::drawEdge(const QPointF &position) {
-    // For some reason when there is only one point on the scene it returns position of image
-    // In other cases it returns position of last point
-    const QPointF pointPosition{ m_numberOfPoints == 1 ? m_scene->items()[1]->pos() : m_scene->items().first()->pos() };
-    const QLineF line{ pointPosition, position };
-    const QBrush brush{ QColorConstants::Red };
-    const QPen pen{ brush, 4 };
-    if (!m_line) {
-        m_line = m_scene->addLine(line, pen);
-    } else {
-        if (!m_line->scene()) {
-            m_scene->addItem(m_line);
+void MainWindow::drawPath(const QPoint &position) {
+    QPointF start{};
+    for (const auto *item : m_scene->items()) {
+        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item) && item->pos() != QPoint{}) {
+            start = item->pos();
+            break;
         }
-        m_line->setLine(line);
     }
+
+    const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
+    const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
+    const auto path{ m_graph->shortestPath(source, destination) };
+    QList<QPoint> points;
+    points.reserve(path.size());
+    for (auto point : path) {
+        points.emplaceBack(point.x, point.y);
+    }
+
+    if (!m_path) {
+        m_path = new PathItem(points);
+        m_scene->addItem(m_path);
+    } else {
+        if (!m_path->scene()) {
+            m_scene->addItem(m_path);
+        }
+        m_path->setPoints(points);
+    }
+
+    update();
 }

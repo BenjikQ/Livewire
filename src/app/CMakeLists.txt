@@ -1,28 +1,31 @@
 include_directories(${CMAKE_BINARY_DIR}/configured_files)
 
 qt_add_executable(main
-  MANUAL_FINALIZATION
   main.cpp
   main_window.ui
-  main_window.cpp
-  main_window.hpp
-  commands.cpp
-  commands.hpp
-  point_item.cpp
-  point_item.hpp
-  painter_options.cpp
-  painter_options.hpp)
+  main_window.cpp main_window.hpp
+  commands.cpp commands.hpp
+  point_item.cpp point_item.hpp
+  painter_options.cpp painter_options.hpp
+  path_item.cpp path_item.hpp)
+
 target_link_libraries(main
+  PUBLIC
+    opencv_core
+    opencv_imgcodecs
+    opencv_imgproc
   PRIVATE
-#    livewire
+    livewire
     Qt6::Widgets
     Qt6::Gui)
+
 set_target_properties(main
   PROPERTIES
     OUTPUT_NAME livewire
     WIN32_EXECUTABLE ON
     MACOSX_BUNDLE ON
     INTERPROCEDURAL_OPTIMIZATION TRUE)
+
 qt_add_resources(main "icons"
   PREFIX
     "/icons"
@@ -41,5 +44,3 @@ add_custom_target(copy_icons
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/data ${CMAKE_BINARY_DIR}/data)
 add_dependencies(main copy_icons)
-
-qt_finalize_target(main)

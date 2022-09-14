@@ -15,13 +15,17 @@ IncludeCategories:
     Priority: 2
     SortPriority: 2
     CaseSensitive: true
+  - Regex: '<opencv2.*>' # OpenCV headers
+    Priority: 3
+    SortPriority: 3
+    CaseSensitive: true
   - Regex: '<[^\.]*>' # C++ standard library headers (without file extension)
     Priority: 1
     SortPriority: 1
     CaseSensitive: true
   - Regex: '".*"' # Project headers (third party libraries should be included using <>)
-    Priority: 3
-    SortPriority: 3
+    Priority: 4
+    SortPriority: 4
     CaseSensitive: true
 IndentCaseLabels: 'false'
 IndentWidth: '4'
