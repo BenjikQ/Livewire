@@ -10,12 +10,14 @@ class QGraphicsScene;
 class QUndoCommand;
 QT_END_NAMESPACE
 
+class PathItem;
 class PointItem;
+
 struct PainterOptions;
 
 class AddCommand : public QUndoCommand {
 public:
-    AddCommand(const PainterOptions &options, int &numberOfPoint, QGraphicsScene *scene,
+    AddCommand(const QList<QPoint> &points, const PainterOptions &options, int &numberOfPoint, QGraphicsScene *scene,
                QUndoCommand *parent = nullptr);
     ~AddCommand() override;
 
@@ -24,6 +26,7 @@ public:
 
 private:
     QGraphicsScene *m_scene;
+    PathItem *m_path;
     PointItem *m_item;
     int &m_numberOfPoints;
 };

@@ -135,10 +135,12 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
 [[maybe_unused]] void MainWindow::undo() {
     m_undoStack->undo();
+    m_scene->update();
 }
 
 [[maybe_unused]] void MainWindow::redo() {
     m_undoStack->redo();
+    m_scene->update();
 }
 
 void MainWindow::setupUi() {
@@ -214,7 +216,7 @@ void MainWindow::createTextLabel(QLabel *&textLabel, const QString &text, int wi
 void MainWindow::createIconLabel(QLabel *&iconLabel, const QString &iconPath) {
     iconLabel = new QLabel(this);
     iconLabel->setStyleSheet("margin-bottom: 10px; margin-left: 10px");
-    const QIcon icon{ ":/icons/data/icons/mouse-coordinates.png" };
+    const QIcon icon{ iconPath };
     const QPixmap pixmap = icon.pixmap(QSize{ 16, 16 });
     iconLabel->setPixmap(pixmap);
     statusBar()->addWidget(iconLabel);
@@ -233,8 +235,27 @@ void MainWindow::updateLabel(const QPoint &position) {
 }
 
 void MainWindow::clickPoint(const QPoint &position) {
+    QList<QPoint> points;
+    if (m_numberOfPoints > 0) {
+        QPointF start{};
+        for (const auto *item : m_scene->items()) {
+            if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item) && item->pos() != QPoint{}) {
+                start = item->pos();
+                break;
+            }
+        }
+
+        const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
+        const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
+        const auto path{ m_graph->shortestPath(source, destination) };
+        points.reserve(path.size());
+        for (auto point : path) {
+            points.emplaceBack(point.x, point.y);
+        }
+    }
+
     const PainterOptions pointOptions{ position, Qt::red, Qt::black, 1, 4 };
-    QUndoCommand *addPointCommand = new AddCommand(pointOptions, m_numberOfPoints, m_scene);
+    QUndoCommand *addPointCommand = new AddCommand(points, pointOptions, m_numberOfPoints, m_scene);
     m_undoStack->push(addPointCommand);
 }
 
