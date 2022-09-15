@@ -67,6 +67,9 @@ private:
     void clickPoint(const QPoint &position);
     void drawPath(const QPoint &position);
 
+    bool pointInImage(Point point) const;
+    bool pointInImage(QPoint point) const;
+
 private:
     bool m_drawing{ false };
 

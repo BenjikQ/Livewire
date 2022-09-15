@@ -236,6 +236,7 @@ void MainWindow::updateLabel(const QPoint &position) {
 
 void MainWindow::clickPoint(const QPoint &position) {
     QList<QPoint> points;
+    if (!pointInImage(position)) return;
     if (m_numberOfPoints > 0) {
         QPointF start{};
         for (const auto *item : m_scene->items()) {
@@ -270,6 +271,9 @@ void MainWindow::drawPath(const QPoint &position) {
 
     const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
     const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
+
+    if (!pointInImage(source) || !pointInImage(destination)) return;
+
     const auto path{ m_graph->shortestPath(source, destination) };
     QList<QPoint> points;
     points.reserve(path.size());
@@ -288,4 +292,12 @@ void MainWindow::drawPath(const QPoint &position) {
     }
 
     update();
+}
+
+bool MainWindow::pointInImage(Point point) const {
+    return point.x >= 0 && point.y >= 0 && point.x < m_image.width() && point.y < m_image.height();
+}
+
+bool MainWindow::pointInImage(QPoint point) const {
+    return point.x() >= 0 && point.y() >= 0 && point.x() < m_image.width() && point.y() < m_image.height();
 }
