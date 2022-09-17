@@ -10,7 +10,7 @@ AddCommand::AddCommand(const QList<QPoint> &points, const PainterOptions &option
                        QGraphicsScene *scene, QUndoCommand *parent) :
     QUndoCommand{ parent },
     m_scene{ scene },
-    m_path{ points.empty() ? nullptr : new PathItem(points) },
+    m_path{ points.empty() ? nullptr : new PathItem(options, points) },
     m_item{ new PointItem(options) },
     m_numberOfPoints{ numberOfPoints } {}
 

@@ -6,12 +6,15 @@
 #include <QPainter>
 #include <QPen>
 
-PathItem::PathItem(const QList<QPoint> &points, QGraphicsItem *parent) :
+#include "painter_options.hpp"
+
+PathItem::PathItem(const PainterOptions &options, const QList<QPoint> &points, QGraphicsItem *parent) :
     QGraphicsItem(parent),
-    m_points{ points } {}
+    m_points{ points },
+    m_color{ options.pathColor } {}
 
 void PathItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
-    const QPen pen{ Qt::red, 4 };
+    const QPen pen{ m_color, 4 };
     painter->setPen(pen);
     painter->drawPoints(m_points);
 }
@@ -30,4 +33,8 @@ QRectF PathItem::boundingRect() const {
 
 void PathItem::setPoints(QList<QPoint> points) {
     m_points = std::move(points);
+}
+
+void PathItem::setOptions(const PainterOptions &options) {
+    m_color = options.pathColor;
 }

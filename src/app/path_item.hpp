@@ -11,17 +11,21 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 QT_END_NAMESPACE
 
+struct PainterOptions;
+
 class PathItem : public QGraphicsItem {
 public:
-    explicit PathItem(const QList<QPoint> &points = {}, QGraphicsItem *parent = nullptr);
+    explicit PathItem(const PainterOptions &options, const QList<QPoint> &points = {}, QGraphicsItem *parent = nullptr);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
 
     void setPoints(QList<QPoint> points);
+    void setOptions(const PainterOptions &options);
 
 private:
     QList<QPoint> m_points;
+    QColor m_color;
 };
 
 #endif  // LIVEWIRE_PATH_ITEM_HPP

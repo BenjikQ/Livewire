@@ -10,6 +10,7 @@
 
 #include "cost_functions.hpp"
 #include "graph.hpp"
+#include "painter_options.hpp"
 #include "path_item.hpp"
 
 QT_BEGIN_NAMESPACE
@@ -51,6 +52,10 @@ private slots:
     [[maybe_unused]] void undo();
     [[maybe_unused]] void redo();
 
+    // Toolbar actions
+    [[maybe_unused]] void showPointColorDialog();
+    [[maybe_unused]] void showPathColorDialog();
+
 private:
     void setupUi();
     void setupSceneText();
@@ -82,6 +87,8 @@ private:
     QImage m_image;
     cv::Mat m_imageGray;
     std::unique_ptr<DiagonalGraph<CostFunction>> m_graph{ nullptr };
+
+    PainterOptions m_painterOptions{ {}, Qt::red, Qt::red, 1, 4 };
 
     QRectF m_initialSceneRect{};
     QGraphicsScene *m_scene;

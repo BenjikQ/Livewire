@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include <QColorDialog>
 #include <QDir>
 #include <QEvent>
 #include <QFileDialog>
@@ -27,7 +28,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include "commands.hpp"
-#include "painter_options.hpp"
 #include "ui_main_window.h"
 
 static const QString caption{ "Open Image" };
@@ -135,12 +135,18 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
 [[maybe_unused]] void MainWindow::undo() {
     m_undoStack->undo();
-    m_scene->update();
 }
 
 [[maybe_unused]] void MainWindow::redo() {
     m_undoStack->redo();
-    m_scene->update();
+}
+
+void MainWindow::showPointColorDialog() {
+    m_painterOptions.pointColor = QColorDialog::getColor();
+}
+
+void MainWindow::showPathColorDialog() {
+    m_painterOptions.pathColor = QColorDialog::getColor();
 }
 
 void MainWindow::setupUi() {
@@ -255,8 +261,8 @@ void MainWindow::clickPoint(const QPoint &position) {
         }
     }
 
-    const PainterOptions pointOptions{ position, Qt::red, Qt::black, 1, 4 };
-    QUndoCommand *addPointCommand = new AddCommand(points, pointOptions, m_numberOfPoints, m_scene);
+    m_painterOptions.position = position;
+    QUndoCommand *addPointCommand = new AddCommand(points, m_painterOptions, m_numberOfPoints, m_scene);
     m_undoStack->push(addPointCommand);
 }
 
@@ -282,9 +288,10 @@ void MainWindow::drawPath(const QPoint &position) {
     }
 
     if (!m_path) {
-        m_path = new PathItem(points);
+        m_path = new PathItem(m_painterOptions, points);
         m_scene->addItem(m_path);
     } else {
+        m_path->setOptions(m_painterOptions);
         if (!m_path->scene()) {
             m_scene->addItem(m_path);
         }

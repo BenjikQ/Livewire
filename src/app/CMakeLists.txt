@@ -36,7 +36,9 @@ qt_add_resources(main "icons"
     "../../data/icons/screen.png"
     "../../data/icons/app.png"
     "../../data/icons/undo.png"
-    "../../data/icons/redo.png")
+    "../../data/icons/redo.png"
+    "../../data/icons/brush.png"
+    "../../data/icons/point.png")
 
 # Shouldn't probably be needed
 # but didn't work without copying files
