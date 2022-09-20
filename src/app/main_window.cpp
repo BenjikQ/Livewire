@@ -58,26 +58,22 @@ MainWindow::~MainWindow() {
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
+    auto sceneMousePosition = [event]() {
         const auto *mouseMoveEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
         const double x{ mouseMoveEvent->scenePos().x() };
         const double y{ mouseMoveEvent->scenePos().y() };
-        const QPoint mousePosition{ static_cast<int>(x), static_cast<int>(y) };
-        updateLabel(mousePosition);
+        return QPoint{ static_cast<int>(x), static_cast<int>(y) };
+    };
+    if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
+        m_mouseLastScenePosition = sceneMousePosition();
+        updateLabel(m_mouseLastScenePosition);
 
-        if (m_drawing) {
-            if (m_numberOfPoints > 0) {
-                drawPath(mousePosition);
-            } else if (m_path && m_path->scene()) {
-                m_scene->removeItem(m_path);
-            }
+        if (m_drawing && m_numberOfPoints > 0) {
+            drawPath(m_mouseLastScenePosition);
         }
-    } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress) {
-        const auto *mousePressEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
-        const double x{ mousePressEvent->scenePos().x() };
-        const double y{ mousePressEvent->scenePos().y() };
-        const QPoint mousePosition{ static_cast<int>(x), static_cast<int>(y) };
-        clickPoint(mousePosition);
+    } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress &&
+               static_cast<const QGraphicsSceneMouseEvent *>(event)->button() == Qt::LeftButton) {
+        clickPoint(sceneMousePosition());
     }
     return false;
 }
@@ -135,10 +131,18 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
 [[maybe_unused]] void MainWindow::undo() {
     m_undoStack->undo();
+    if (m_numberOfPoints == 0) {
+        m_scene->removeItem(m_path);
+        // Not sure if it should be first deleted
+        // but then the program crashes
+        m_path = nullptr;
+    }
+    drawPath(m_mouseLastScenePosition);
 }
 
 [[maybe_unused]] void MainWindow::redo() {
     m_undoStack->redo();
+    drawPath(m_mouseLastScenePosition);
 }
 
 void MainWindow::showPointColorDialog() {
@@ -161,6 +165,7 @@ void MainWindow::setupSceneText() {
     m_numberOfPoints = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
+        m_path = nullptr;
     }
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_undoStack->clear();
@@ -175,6 +180,7 @@ void MainWindow::setupSceneImage() {
     m_numberOfPoints = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
+        m_path = nullptr;
     }
     m_undoStack->clear();
     m_scene->clear();
@@ -234,46 +240,32 @@ void MainWindow::updateLabel(const QPoint &position) {
     // thus displaying negative values in left-top part when moving cursor
     // it was tested empirically
     // should have been calculated based on scene intro text
-    const QPoint sceneOffset{ size().width() / 2 - 191, size().height() / 2 - 48 };
+    const QPoint sceneOffset{ size().width() / 2 - 88, size().height() / 2 - 66 };
     const QPointF mousePosition = m_image.isNull() ? position + sceneOffset : position;
     const QString coordinates = QString::number(mousePosition.x()) + ", " + QString::number(mousePosition.y()) + " pix";
     m_mouseCoordinatesLabel->setText(coordinates);
 }
 
 void MainWindow::clickPoint(const QPoint &position) {
-    QList<QPoint> points;
     if (!pointInImage(position)) return;
-    if (m_numberOfPoints > 0) {
-        QPointF start{};
-        for (const auto *item : m_scene->items()) {
-            if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item) && item->pos() != QPoint{}) {
-                start = item->pos();
-                break;
-            }
-        }
-
-        const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
-        const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
-        const auto path{ m_graph->shortestPath(source, destination) };
-        points.reserve(path.size());
-        for (auto point : path) {
-            points.emplaceBack(point.x, point.y);
-        }
-    }
 
     m_painterOptions.position = position;
-    QUndoCommand *addPointCommand = new AddCommand(points, m_painterOptions, m_numberOfPoints, m_scene);
+    QUndoCommand *addPointCommand =
+        new AddCommand(m_path ? m_path->getPoints() : QList<QPoint>{}, m_painterOptions, m_numberOfPoints, m_scene);
     m_undoStack->push(addPointCommand);
 }
 
 void MainWindow::drawPath(const QPoint &position) {
     QPointF start{};
+    // Get the last clicked point in the scene
     for (const auto *item : m_scene->items()) {
-        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item) && item->pos() != QPoint{}) {
+        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item)) {
             start = item->pos();
             break;
         }
     }
+
+    if (start.isNull()) return;
 
     const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
     const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
@@ -292,13 +284,13 @@ void MainWindow::drawPath(const QPoint &position) {
         m_scene->addItem(m_path);
     } else {
         m_path->setOptions(m_painterOptions);
+        m_path->setPoints(points);
         if (!m_path->scene()) {
             m_scene->addItem(m_path);
         }
-        m_path->setPoints(points);
     }
 
-    update();
+    m_scene->update();
 }
 
 bool MainWindow::pointInImage(Point point) const {

@@ -25,7 +25,9 @@ AddCommand::~AddCommand() {
 
 void AddCommand::undo() {
     m_scene->removeItem(m_item);
-    m_scene->removeItem(m_path);
+    if (m_path) {
+        m_scene->removeItem(m_path);
+    }
     m_scene->update();
     --m_numberOfPoints;
 }

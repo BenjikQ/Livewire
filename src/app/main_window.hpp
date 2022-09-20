@@ -92,6 +92,7 @@ private:
 
     QRectF m_initialSceneRect{};
     QGraphicsScene *m_scene;
+    QPoint m_mouseLastScenePosition{};
     PathItem *m_path{ nullptr };
     QUndoStack *m_undoStack;
     int m_numberOfPoints;

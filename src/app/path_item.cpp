@@ -20,19 +20,23 @@ void PathItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 }
 
 QRectF PathItem::boundingRect() const {
-    const auto minMaxX = std::minmax(m_points.cbegin(), m_points.cend(),
-                                     [](const auto &lhs, const auto &rhs) { return lhs->x() < rhs->x(); });
-    const auto minMaxY = std::minmax(m_points.cbegin(), m_points.cend(),
-                                     [](const auto &lhs, const auto &rhs) { return lhs->y() < rhs->y(); });
+    const auto [minX, maxX] = std::minmax_element(m_points.cbegin(), m_points.cend(),
+                                                  [](const auto &lhs, const auto &rhs) { return lhs.x() < rhs.x(); });
+    const auto [minY, maxY] = std::minmax_element(m_points.cbegin(), m_points.cend(),
+                                                  [](const auto &lhs, const auto &rhs) { return lhs.y() < rhs.y(); });
 
-    const QPointF topLeft{ static_cast<double>(minMaxX.first->x()), static_cast<double>(minMaxY.first->y()) };
-    const QPointF bottomRight{ static_cast<double>(minMaxX.second->x()), static_cast<double>(minMaxY.second->y()) };
+    const QPointF topLeft{ static_cast<double>(minX->x()), static_cast<double>(minY->y()) };
+    const QPointF bottomRight{ static_cast<double>(maxX->x()), static_cast<double>(maxY->y()) };
 
     return QRectF{ topLeft, bottomRight };
 }
 
 void PathItem::setPoints(QList<QPoint> points) {
     m_points = std::move(points);
+}
+
+QList<QPoint> PathItem::getPoints() const {
+    return m_points;
 }
 
 void PathItem::setOptions(const PainterOptions &options) {

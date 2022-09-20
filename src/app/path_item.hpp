@@ -21,6 +21,7 @@ public:
     [[nodiscard]] QRectF boundingRect() const override;
 
     void setPoints(QList<QPoint> points);
+    QList<QPoint> getPoints() const;
     void setOptions(const PainterOptions &options);
 
 private:
