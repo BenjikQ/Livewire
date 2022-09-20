@@ -50,8 +50,8 @@ QMenu:item:selected
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>282</width>
-         <height>528</height>
+         <width>285</width>
+         <height>538</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -498,7 +498,7 @@ QMenu:item:selected
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -516,6 +516,10 @@ QMenu:item:selected
      <string>Edit</string>
     </property>
     <addaction name="undoAction"/>
+    <addaction name="ZoomInAction"/>
+    <addaction name="ZoomOutAction"/>
+    <addaction name="DrawingModeAction"/>
+    <addaction name="EditingModeAction"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -570,6 +574,32 @@ QMenu:item:selected
   <action name="loadOutlinesWithColorsAction">
    <property name="text">
     <string>Load outlines with colors</string>
+   </property>
+  </action>
+  <action name="ZoomInAction">
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+=</string>
+   </property>
+  </action>
+  <action name="ZoomOutAction">
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="DrawingModeAction">
+   <property name="text">
+    <string>Drawing mode</string>
+   </property>
+  </action>
+  <action name="EditingModeAction">
+   <property name="text">
+    <string>Editing mode</string>
    </property>
   </action>
  </widget>
@@ -687,6 +717,70 @@ QMenu:item:selected
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>ZoomInAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>zoomIn()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ZoomOutAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>DrawingModeAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>setDrawingMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>EditingModeAction</sender>
+   <signal>triggered()</signal>
+   <receiver>ImageViewer</receiver>
+   <slot>setEditingMode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>open()</slot>
@@ -696,5 +790,9 @@ QMenu:item:selected
   <slot>saveOutlines()</slot>
   <slot>compareJaccard()</slot>
   <slot>loadOutlinesWithColors()</slot>
+  <slot>zoomIn()</slot>
+  <slot>zoomOut()</slot>
+  <slot>setDrawingMode()</slot>
+  <slot>setEditingMode()</slot>
  </slots>
 </ui>

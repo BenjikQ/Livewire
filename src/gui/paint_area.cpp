@@ -19,6 +19,9 @@ PaintArea::PaintArea(QWidget *parent) : QWidget{ parent } {}
 void PaintArea::open(const QString &filePath) {
     QImageReader reader(filePath);
     image = reader.read();
+    scaleRatio = 1.f;
+    editing = false;
+    movingPointId = -1;
     setMinimumSize(image.size());
     setMouseTracking(true);
     clear();
@@ -30,114 +33,99 @@ void PaintArea::open(const QString &filePath) {
 }
 
 void PaintArea::loadOutlines(const QString &filePath) {
-    currentPath = readPointsInto<QList<QPoint>>(filePath.toStdString().c_str());
-    lastPoint = currentPath.last();
-
-    pathsLengths.clear();
-    pathsWidths.clear();
-    pathsColors.clear();
+    // load whole path as one edge
+    Path loadedPath;
+    loadedPath.points =
+        readPointsInto<QList<QPoint>>(filePath.toStdString().c_str());
+    loadedPath.penColor = pens.currentPath.color();
+    loadedPath.penWidth = pens.currentPath.width();
+    lastPoint = loadedPath.points.last();
     points.clear();
-
-    pathsLengths.push_back(currentPath.size());
-    pathsWidths.push_back(pens.currentPath.width());
-    pathsColors.push_back(pens.currentPath.color());
-    points.push_back(currentPath.first());
-    points.push_back(currentPath.last());
+    points.push_back(loadedPath.points.first());
+    points.push_back(loadedPath.points.last());
+    fullPath.push_back(loadedPath);
 
     update();
 }
 
 void PaintArea::loadOutlinesWithColors(const QString &filePath) {
-    pathsLengths.clear();
-    pathsWidths.clear();
-    pathsColors.clear();
     points.clear();
-    currentPath.clear();
+    fullPath.clear();
 
     std::ifstream file(filePath.toStdString());
+    // number of edges
     int size;
     file >> size;
 
-    pathsLengths.reserve(size);
-    pathsWidths.reserve(size);
-    pathsColors.reserve(size);
-    points.reserve(size);
+    points.reserve(size + 1);
 
+    // load multiple edges
     for (int i = 0; i < size; ++i) {
-        int pathLength;
-        file >> pathLength;
-        pathsLengths.push_back(pathLength);
-    }
+        Path loadedPath;
+        file >> loadedPath.penWidth;
 
-    for (int i = 0; i < size; ++i) {
-        int pathWidth;
-        file >> pathWidth;
-        pathsWidths.push_back(pathWidth);
-    }
-
-    for (int i = 0; i < size; ++i) {
         int r, g, b;
         file >> r >> g >> b;
-        pathsColors.push_back(QColor::fromRgb(r, g, b));
-    }
+        loadedPath.penColor = QColor::fromRgb(r, g, b);
 
-    for (int i = 0; i < size; ++i) {
-        int x, y;
-        file >> x >> y;
-        points.push_back({ x, y });
-    }
+        int pathSize;
+        file >> pathSize;
 
-    const auto totalLength =
-        std::accumulate(pathsLengths.cbegin(), pathsLengths.cend(), 0);
-    currentPath.reserve(totalLength);
-    for (int i = 0; i < totalLength; ++i) {
-        int x, y;
-        file >> x >> y;
-        currentPath.push_back({ x, y });
+        loadedPath.points.reserve(pathSize);
+        for (int j = 0; j < pathSize; ++j) {
+            int x, y;
+            file >> x >> y;
+            loadedPath.points.push_back({ x, y });
+        }
+        // push back first point of the edge
+        points.push_back(loadedPath.points.first());
+        fullPath.push_back(loadedPath);
     }
-
-    lastPoint = currentPath.last();
+    // complete list of points with last point of last edge
+    points.push_back(fullPath.last().points.last());
+    lastPoint = points.last();
 
     update();
 }
 
 void PaintArea::saveOutlines(const QString &filePath) {
-    writePointsToTextC(currentPath, filePath.toStdString().c_str());
+    std::ofstream outFile(filePath.toStdString(), std::ios::out);
+    for (const auto &pathPart : fullPath)
+        for (const auto &point : pathPart.points) {
+            outFile << point.x() << ' ' << point.y() << '\n';
+        }
 
     const auto baseName = QFileInfo(filePath).baseName();
     const auto extension = QFileInfo(filePath).completeSuffix();
     const auto path = QFileInfo(filePath).absolutePath();
     const auto fileName = path + "/" + baseName + "_c." + extension;
-    std::ofstream outFile(fileName.toStdString());
+    outFile.close();
+    outFile.open(fileName.toStdString(), std::ios::out);
 
     // saving number of paths
-    outFile << pathsLengths.size() << '\n';
+    outFile << fullPath.size() << '\n';
 
-    for (auto pathLength : pathsLengths)
-        outFile << pathLength << ' ';
-    outFile << '\n';
-
-    for (auto pathWidth : pathsWidths)
-        outFile << pathWidth << ' ';
-    outFile << '\n';
-
-    for (const auto &pathColor : pathsColors)
-        outFile << pathColor.red() << ' ' << pathColor.green() << ' '
-                << pathColor.blue() << ' ';
-    outFile << '\n';
-
-    for (const auto &point : points)
-        outFile << point.x() << ' ' << point.y() << ' ';
-    outFile << '\n';
-
-    for (const auto &point : currentPath)
-        outFile << point.x() << ' ' << point.y() << '\n';
+    for (const auto &pathPart : fullPath) {
+        outFile << pathPart.penWidth << '\n';
+        outFile << pathPart.penColor.red() << ' ' << pathPart.penColor.green()
+                << ' ' << pathPart.penColor.blue() << '\n';
+        outFile << pathPart.points.size() << '\n';
+        for (const auto &point : pathPart.points)
+            outFile << point.x() << ' ' << point.y() << '\n';
+    }
     outFile << '\n';
 }
 
 void PaintArea::save(const QString &filePath, SaveOptions opts) {
     QImageWriter writer(filePath);
     writer.write(composeImage(opts));
+}
+
+void PaintArea::setDrawingMode() { editing = false; }
+
+void PaintArea::setEditingMode() {
+    // lastEdge.clear();
+    editing = true;
 }
 
 void PaintArea::undo() {
@@ -147,14 +135,7 @@ void PaintArea::undo() {
             lastPoint = {};
             lastEdge.clear();
         } else {
-            // Remove last saved path
-            const auto len = pathsLengths.last();
-            const auto index = currentPath.size() - len;
-            currentPath.remove(index, len);
-            pathsLengths.removeLast();
-            pathsWidths.removeLast();
-            pathsColors.removeLast();
-
+            fullPath.removeLast();
             lastPoint = points.last();
             const auto currentPoint = QWidget::mapFromGlobal(QCursor::pos());
             const auto path = dijkstra(graph, { lastPoint.x(), lastPoint.y() },
@@ -162,7 +143,20 @@ void PaintArea::undo() {
             setLastEdge(path);
         }
     }
+    update();
+}
 
+void PaintArea::zoomIn() {
+    if (scaleRatio > 8.f) return;
+    scaleRatio *= 2;
+    setMinimumSize(image.size() * scaleRatio);
+    update();
+}
+
+void PaintArea::zoomOut() {
+    if (scaleRatio < 1.f / 8.f) return;
+    scaleRatio /= 2;
+    setMinimumSize(image.size() * scaleRatio);
     update();
 }
 
@@ -175,16 +169,15 @@ void PaintArea::setPenColor(const QColor &color) {
 void PaintArea::finalizePath() {
     if (points.size() <= 1) return;
 
-    const auto finalEdge = dijkstra(graph, Point::from(points.front()),
-                                    Point::from(points.back()));
+    const auto finalEdge = dijkstra(graph, Point::from(points.back()),
+                                    Point::from(points.front()));
     setLastEdge(finalEdge);
 
-    // TODO: maybe fix copypaste
-    currentPath.append(lastEdge.cbegin(), lastEdge.cend());
     if (!lastEdge.empty()) {
-        pathsLengths.push_back(lastEdge.size());
-        pathsWidths.push_back(pens.currentEdge.width());
-        pathsColors.push_back(pens.currentEdge.color());
+        fullPath.push_back(
+            Path(lastEdge, pens.currentEdge.width(), pens.currentEdge.color()));
+        // overlap last and first points
+        points.push_back(lastEdge.last());
     }
 
     lastEdge.clear();
@@ -193,26 +186,127 @@ void PaintArea::finalizePath() {
     update();
 }
 
-void PaintArea::mousePressEvent(QMouseEvent *event) {
-    if (event->buttons() & Qt::LeftButton) {
-        const auto currentPoint = event->position().toPoint();
-        const QColor penColor = Qt::red;
-        const int penWidth = 10;
-        QPainter painter(&image);
-        painter.setPen(QPen(penColor, penWidth, Qt::SolidLine, Qt::RoundCap,
-                            Qt::RoundJoin));
-        lastPoint = currentPoint;
-        currentPath.append(lastEdge.cbegin(), lastEdge.cend());
-        if (!lastEdge.empty()) {
-            pathsLengths.push_back(lastEdge.size());
-            pathsWidths.push_back(pens.currentEdge.width());
-            pathsColors.push_back(pens.currentEdge.color());
+QList<QPoint> PaintArea::createPath(QPoint pointFrom, QPoint pointTo) {
+    QList<QPoint> edge;
+    const auto dijkstraPath =
+        dijkstra(graph, Point::from(pointFrom), Point::from(pointTo));
+    edge.clear();
+    edge.reserve(dijkstraPath.size());
+    for (const auto point : dijkstraPath) {
+        edge.push_back(
+            { static_cast<int>(point.x), static_cast<int>(point.y) });
+    }
+    return edge;
+}
+
+void PaintArea::updatePathsAfterMoving(int pointId) {
+    if (pointId == 0) {
+        // updating first edge
+        fullPath.first().points =
+            createPath(points.at(pointId), points.at(pointId + 1));
+    } else if (pointId == points.size() - 1) {
+        // updating last edge
+        fullPath.last().points =
+            createPath(points.at(pointId - 1), points.at(pointId));
+    } else {
+        // updating both edges connected to middle point
+        Path edge = fullPath.at(pointId);
+        edge.points = createPath(points.at(pointId), points.at(pointId + 1));
+        fullPath.replace(pointId, edge);
+        edge = fullPath.at(pointId - 1);
+        edge.points = createPath(points.at(pointId - 1), points.at(pointId));
+        fullPath.replace(pointId - 1, edge);
+    }
+}
+
+void PaintArea::updatePathsAfterDeleting(int pointId) {
+    if (points.size() <= 1) {
+        if (points.size() == 1)
+            lastPoint = points.front();
+        else
+            lastPoint = {};
+        fullPath.clear();
+        return;
+    }
+    if (pointId == 0) {
+        fullPath.removeFirst();
+        return;
+    } else if (pointId == points.size()) {
+        fullPath.removeLast();
+        lastPoint = points.last();
+        return;
+    }
+    int edgeId = pointId - 1;
+    fullPath.remove(edgeId);
+    const auto dijkstraPath =
+        dijkstra(graph, Point::from(points.at(pointId - 1)),
+                 Point::from(points.at(pointId)));
+    Path modifiedPath;
+    modifiedPath.penWidth = fullPath.at(edgeId).penWidth;
+    modifiedPath.penColor = fullPath.at(edgeId).penColor;
+    modifiedPath.points.reserve(dijkstraPath.size());
+    for (const auto point : dijkstraPath) {
+        modifiedPath.points.push_back(
+            { static_cast<int>(point.x), static_cast<int>(point.y) });
+    }
+    fullPath.replace(edgeId, modifiedPath);
+}
+
+void PaintArea::movePoint(const QPoint mPos) {
+    if (movingPointId == -1) {
+        // unselected point - find point at mouse position
+        int pointId = 0;
+        for (auto it = points.begin(); it != points.end(); it++) {
+            if (std::abs(it->x() - mPos.x()) < 10 &&
+                std::abs(it->y() - mPos.y()) < 10) {
+                movingPointId = pointId;
+                return;
+            }
+            pointId++;
         }
+    } else if (editing && movingPointId >= 0) {
+        // selected point - move at mouse position
+        points.replace(movingPointId, mPos);
+        updatePathsAfterMoving(movingPointId);
+        if (movingPointId == points.size() - 1) lastPoint = points.last();
+        movingPointId = -1;
+    }
+}
+
+void PaintArea::deletePoint(const QPoint mPos) {
+    // find and erase point at mouse position
+    int pointId = 0;
+    for (auto it = points.begin(); it != points.end(); it++) {
+        if (std::abs(it->x() - mPos.x() / scaleRatio) < 10 &&
+            std::abs(it->y() - mPos.y() / scaleRatio) < 10) {
+            points.erase(it);
+            updatePathsAfterDeleting(pointId);
+            break;
+        }
+        pointId++;
+    }
+}
+
+void PaintArea::mousePressEvent(QMouseEvent *event) {
+    if (editing) {
+        const auto currentPoint = event->position().toPoint() / scaleRatio;
+        if (event->buttons() & Qt::LeftButton)
+            movePoint(currentPoint);
+        else if (event->buttons() & Qt::RightButton)
+            deletePoint(currentPoint);
+    } else if (event->buttons() & Qt::LeftButton) {
+        const auto currentPoint = event->position().toPoint() / scaleRatio;
+        lastPoint = currentPoint;
         points.push_back(lastPoint);
+        if (!lastEdge.empty()) {
+            Path pathToAdd(lastEdge, pens.currentEdge.width(),
+                           pens.currentEdge.color());
+            fullPath.push_back(pathToAdd);
+        }
     } else if (event->buttons() & Qt::RightButton) {
         const auto pd = getConfirmedPoints();
         if (!pd.pts.empty()) {
-            const auto p = event->position().toPoint();
+            const auto p = event->position().toPoint() / scaleRatio;
             floodFillRegion(pd, { p.x(), p.y() });
         }
     }
@@ -220,9 +314,9 @@ void PaintArea::mousePressEvent(QMouseEvent *event) {
 }
 
 void PaintArea::mouseMoveEvent(QMouseEvent *event) {
-    if (lastPoint.isNull()) return;
+    if (lastPoint.isNull() || editing) return;
 
-    const auto currentPoint = event->position().toPoint();
+    const auto currentPoint = event->position().toPoint() / scaleRatio;
     if (currentPoint.x() >= image.width() || currentPoint.y() >= image.height())
         return;
 
@@ -235,6 +329,9 @@ void PaintArea::mouseMoveEvent(QMouseEvent *event) {
 void PaintArea::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
     QRect dirtyRect = event->rect();
+
+    painter.scale(scaleRatio, scaleRatio);
+    dirtyRect.setTopLeft(QPoint(0, 0));
 
     painter.drawImage(dirtyRect, image, dirtyRect);
     paintPathComponents(painter);
@@ -281,11 +378,7 @@ void PaintArea::clear() {
     lastPoint = {};
     lastEdge.clear();
     points.clear();
-    currentPath.clear();
-    previousPaths.clear();
-    pathsLengths.clear();
-    pathsWidths.clear();
-    pathsColors.clear();
+    fullPath.clear();
     region.clear();
 }
 
@@ -302,17 +395,18 @@ PathData PaintArea::getConfirmedPoints() const {
     PathData data{ Point::maxValue(), -Point::maxValue(), {} };
 
     // for (const auto &path : previousPaths) {
-    for (const auto &point : currentPath) {
-        data.topLeft.x =
-            std::min(data.topLeft.x, static_cast<int64_t>(point.x()));
-        data.topLeft.y =
-            std::min(data.topLeft.y, static_cast<int64_t>(point.y()));
-        data.bottomRight.x =
-            std::max(data.bottomRight.x, static_cast<int64_t>(point.x()));
-        data.bottomRight.y =
-            std::max(data.bottomRight.y, static_cast<int64_t>(point.y()));
-        data.pts.insert(Point::from(point));
-    }
+    for (const auto &pathPart : fullPath)
+        for (const auto &point : pathPart.points) {
+            data.topLeft.x =
+                std::min(data.topLeft.x, static_cast<int64_t>(point.x()));
+            data.topLeft.y =
+                std::min(data.topLeft.y, static_cast<int64_t>(point.y()));
+            data.bottomRight.x =
+                std::max(data.bottomRight.x, static_cast<int64_t>(point.x()));
+            data.bottomRight.y =
+                std::max(data.bottomRight.y, static_cast<int64_t>(point.y()));
+            data.pts.insert(Point::from(point));
+        }
     //}
 
     return data;
@@ -347,19 +441,11 @@ void PaintArea::floodFillRegion(const PathData &pd, Point origin) {
 void PaintArea::paintPathComponents(QPainter &painter, bool paintCurrent,
                                     bool paintPath, bool paintPoints) {
     if (paintPath) {
-        int start = 0;
-        for (int i = 0; i < pathsWidths.size(); ++i) {
-            const auto width = pathsWidths[i];
-            const auto length = pathsLengths[i];
-            const auto color = pathsColors[i];
-            const auto &path =
-                QList<QPoint>{ currentPath.begin() + start,
-                               currentPath.begin() + start + length };
-            pens.currentPath.setWidth(width);
-            pens.currentPath.setColor(color);
+        for (const auto &pathPart : fullPath) {
+            pens.currentPath.setWidth(pathPart.penWidth);
+            pens.currentPath.setColor(pathPart.penColor);
             painter.setPen(pens.currentPath);
-            painter.drawPoints(path);
-            start += length;
+            painter.drawPoints(pathPart.points);
         }
     }
 
@@ -368,7 +454,7 @@ void PaintArea::paintPathComponents(QPainter &painter, bool paintCurrent,
         painter.drawPoints(points);
     }
 
-    if (paintCurrent) {
+    if (paintCurrent && !editing) {
         painter.setPen(pens.currentEdge);
         painter.drawPoints(lastEdge);
 

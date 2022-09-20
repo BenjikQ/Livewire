@@ -176,6 +176,7 @@ void ImageViewer::loadOutlines() {
         QFileDialog::getOpenFileName(this, tr("Open outlines file"),
                                      homeDirectory, tr("Text files (*.txt)"));
     if (!filePath.isEmpty()) {
+        paintArea->clear();
         paintArea->loadOutlines(filePath);
     }
 }
@@ -189,6 +190,7 @@ void ImageViewer::loadOutlinesWithColors() {
         QFileDialog::getOpenFileName(this, tr("Open outlines with colors file"),
                                      homeDirectory, tr("Text files (*.txt)"));
     if (!filePath.isEmpty()) {
+        paintArea->clear();
         paintArea->loadOutlinesWithColors(filePath);
     }
 }
@@ -216,3 +218,11 @@ void ImageViewer::compareJaccard() {
     compDisplay->prepareDisplay(selected, region, data);
     compDisplay->exec();
 }
+
+void ImageViewer::zoomIn() { paintArea->zoomIn(); }
+
+void ImageViewer::zoomOut() { paintArea->zoomOut(); }
+
+void ImageViewer::setDrawingMode() { paintArea->setDrawingMode(); }
+
+void ImageViewer::setEditingMode() { paintArea->setEditingMode(); }

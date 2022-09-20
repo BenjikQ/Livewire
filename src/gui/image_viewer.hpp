@@ -32,6 +32,11 @@ private slots:
     void undo();
     void compareJaccard();
 
+    void zoomIn();
+    void zoomOut();
+    void setDrawingMode();
+    void setEditingMode();
+
 private:
     void loadImage(const QString &filePath);
 

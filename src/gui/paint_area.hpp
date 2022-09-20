@@ -19,6 +19,11 @@ public:
     void loadOutlinesWithColors(const QString &filePath);
     void saveOutlines(const QString &filePath);
     void undo();
+    void clear();  // clearing PaintArea available from ImageViewer
+    void zoomIn();
+    void zoomOut();
+    void setDrawingMode();
+    void setEditingMode();
 
     void setPenWidth(int width);
     void setPenColor(const QColor &color);
@@ -32,22 +37,34 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    void clear();
+    QList<QPoint> createPath(QPoint pointFrom, QPoint pointTo);
+    void movePoint(const QPoint mPos);
+    void updatePathsAfterMoving(int pointId);
+    void deletePoint(const QPoint mPos);
+    void updatePathsAfterDeleting(int pointId);
 
 private:
-    bool drawing = false;
+    bool editing;
+    int movingPointId;
+    float scaleRatio;
     DistanceGraph graph;
     cv::Mat imageGray;
     QImage image;
-    QPoint lastPoint;
-    QList<QPoint> lastEdge;
+
+    class Path {
+    public:
+        Path() {}
+        Path(QList<QPoint> p, int w, QColor c) :
+            points(p), penWidth(w), penColor(c) {}
+        QList<QPoint> points;
+        int penWidth;
+        QColor penColor;
+    };
+    QList<Path> fullPath;
     QList<QPoint> points;
-    QList<QPoint> currentPath;
-    QList<QList<QPoint>> previousPaths;
-    QList<int> pathsLengths;
-    QList<int> pathsWidths;
-    QList<QColor> pathsColors;
-    // QList<QPoint> region;
+    QList<QPoint> lastEdge;
+    QPoint lastPoint;
+
     std::vector<bool> region;
 
     struct {
