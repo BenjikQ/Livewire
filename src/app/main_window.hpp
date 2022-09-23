@@ -56,6 +56,9 @@ private slots:
     [[maybe_unused]] void showPointColorDialog();
     [[maybe_unused]] void showPathColorDialog();
 
+
+    [[maybe_unused]] void closePath();
+
 private:
     void setupUi();
     void setupSceneText();
@@ -69,7 +72,7 @@ private:
     void createIconLabel(QLabel *&iconLabel, const QString &iconPath);
     void updateLabel(const QPoint &position);
 
-    void clickPoint(const QPoint &position);
+    void clickPoint(const QPoint &position, bool final = false);
     void drawPath(const QPoint &position);
 
     bool pointInImage(Point point) const;

@@ -18,7 +18,7 @@ struct PainterOptions;
 class AddCommand : public QUndoCommand {
 public:
     AddCommand(const QList<QPoint> &points, const PainterOptions &options, int &numberOfPoint, QGraphicsScene *scene,
-               QUndoCommand *parent = nullptr);
+               bool *drawing, QUndoCommand *parent = nullptr);
     ~AddCommand() override;
 
     void undo() override;
@@ -29,6 +29,7 @@ private:
     PathItem *m_path;
     PointItem *m_item;
     int &m_numberOfPoints;
+    bool *m_drawing;
 };
 
 #endif  // LIVEWIRE_COMMANDS_HPP
