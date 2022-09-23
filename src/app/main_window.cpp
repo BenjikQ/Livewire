@@ -251,7 +251,6 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
     if (!pointInImage(position)) return;
 
     m_painterOptions.position = position;
-    qDebug() << position.x() << position.y();
     QUndoCommand *addPointCommand = new AddCommand(m_path ? m_path->getPoints() : QList<QPoint>{}, m_painterOptions,
                                                    m_numberOfPoints, m_scene, final ? &m_drawing : nullptr);
     m_undoStack->push(addPointCommand);
