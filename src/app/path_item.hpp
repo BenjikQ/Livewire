@@ -25,9 +25,12 @@ public:
     void setOptions(const PainterOptions &options);
 
 private:
+    void updateBoundRect();
+
+private:
     QList<QPoint> m_points;
     QColor m_color;
-    QRectF m_boundRect;
+    mutable QRectF m_boundRect;
 };
 
 #endif  // LIVEWIRE_PATH_ITEM_HPP
