@@ -156,6 +156,7 @@ void MainWindow::showPathColorDialog() {
 void MainWindow::setupUi() {
     m_ui->setupUi(this);
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
+    new QShortcut(Qt::Key_Return, this, SLOT(closePath()));
     setWindowIcon(QIcon{ ":/icons/data/icons/app.png" });
     setWindowTitle(QCoreApplication::applicationName());
 }
@@ -246,12 +247,12 @@ void MainWindow::updateLabel(const QPoint &position) {
     m_mouseCoordinatesLabel->setText(coordinates);
 }
 
-void MainWindow::clickPoint(const QPoint &position) {
+void MainWindow::clickPoint(const QPoint &position, bool final) {
     if (!pointInImage(position)) return;
 
     m_painterOptions.position = position;
-    QUndoCommand *addPointCommand =
-        new AddCommand(m_path ? m_path->getPoints() : QList<QPoint>{}, m_painterOptions, m_numberOfPoints, m_scene);
+    QUndoCommand *addPointCommand = new AddCommand(m_path ? m_path->getPoints() : QList<QPoint>{}, m_painterOptions,
+                                                   m_numberOfPoints, m_scene, final ? &m_drawing : nullptr);
     m_undoStack->push(addPointCommand);
 }
 
@@ -291,6 +292,23 @@ void MainWindow::drawPath(const QPoint &position) {
     }
 
     m_scene->update();
+}
+
+void MainWindow::closePath() {
+    if (!m_drawing || m_numberOfPoints <= 1) return;
+
+    QPoint firstPoint;
+    const auto items = m_scene->items();
+
+    for (int i = items.size() - 1; i >= 0; --i) {
+        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(items[i])) {
+            firstPoint = items[i]->pos().toPoint();
+            break;
+        }
+    }
+
+    drawPath(firstPoint);
+    clickPoint(firstPoint, true);
 }
 
 bool MainWindow::pointInImage(Point point) const {
