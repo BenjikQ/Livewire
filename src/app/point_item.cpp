@@ -17,13 +17,13 @@ PointItem::PointItem(const PainterOptions &options, QGraphicsItem *parent) :
     const QPen pen{ outer, m_width };
     setPen(pen);
     setBrush(inner);
+    setPos(m_position);
 }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     painter->setPen(pen());
     painter->setBrush(brush());
     painter->drawEllipse({ 0, 0 }, m_radius, m_radius);
-    setPos(m_position);
 }
 
 QRectF PointItem::boundingRect() const {

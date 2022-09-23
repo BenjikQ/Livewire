@@ -27,6 +27,7 @@ public:
 private:
     QList<QPoint> m_points;
     QColor m_color;
+    QRectF m_boundRect;
 };
 
 #endif  // LIVEWIRE_PATH_ITEM_HPP
