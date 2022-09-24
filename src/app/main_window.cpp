@@ -188,6 +188,10 @@ void MainWindow::setupSceneImage() {
         m_scene->removeItem(m_path);
         m_path = nullptr;
     }
+    if (m_selectionItem && m_selectionItem->scene()) {
+        m_scene->removeItem(m_selectionItem);
+        m_selectionItem = nullptr;
+    }
     m_undoStack->clear();
     m_scene->clear();
     m_scene->addPixmap(QPixmap::fromImage(m_image));
