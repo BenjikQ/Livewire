@@ -26,6 +26,10 @@ QRectF PathItem::boundingRect() const {
     return m_boundRect;
 }
 
+int PathItem::type() const {
+    return Type;
+}
+
 void PathItem::setPoints(QList<QPoint> points) {
     m_points = std::move(points);
     updateBoundRect();

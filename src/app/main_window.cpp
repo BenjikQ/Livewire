@@ -345,7 +345,7 @@ std::unordered_set<QPoint> MainWindow::pointsFromScene() const {
 
     const PathItem *pathItem;
     for (const auto *item : m_scene->items()) {
-        if (pathItem = dynamic_cast<const PathItem *>(item)) {
+        if (pathItem = qgraphicsitem_cast<const PathItem*>(item); pathItem != nullptr) {
             for (const auto &p : pathItem->getPoints()) {
                 points.insert(p);
             }
