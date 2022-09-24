@@ -1,7 +1,10 @@
 #include "commands.hpp"
 
+#include <functional>
+
 #include <QGraphicsScene>
 
+#include "imgprc_helpers.hpp"
 #include "painter_options.hpp"
 #include "path_item.hpp"
 #include "point_item.hpp"
@@ -46,4 +49,22 @@ void AddCommand::redo() {
     }
     m_scene->update();
     ++m_numberOfPoints;
+}
+
+RegionSelectCommand::RegionSelectCommand(QPoint origin, const std::unordered_set<QPoint> &outline,
+                                         QGraphicsScene *scene, SelectionLayerItem *selItem, QUndoCommand *parent) :
+    m_selection{ selItem },
+    m_scene{ scene } {
+    m_stateChange = floodFill(selItem->selected(), outline, origin, selItem->w(), selItem->h());
+}
+
+RegionSelectCommand::~RegionSelectCommand() {}
+
+void RegionSelectCommand::undo() {
+    redo();
+}
+
+void RegionSelectCommand::redo() {
+    m_selection->flipSelected(m_stateChange);
+    m_scene->update();
 }

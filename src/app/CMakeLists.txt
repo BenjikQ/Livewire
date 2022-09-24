@@ -7,7 +7,9 @@ qt_add_executable(main
   commands.cpp commands.hpp
   point_item.cpp point_item.hpp
   painter_options.cpp painter_options.hpp
-  path_item.cpp path_item.hpp)
+  path_item.cpp path_item.hpp
+  imgprc_helpers.hpp imgprc_helpers.cpp
+  selection_layer_item.hpp selection_layer_item.cpp)
 
 target_link_libraries(main
   PUBLIC

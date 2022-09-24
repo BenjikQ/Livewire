@@ -8,6 +8,7 @@ struct PainterOptions {
     QPointF position{};
     QColor pointColor{};
     QColor pathColor{};
+    QColor selectionColor{};
     float width{};
     float radius{};
 };

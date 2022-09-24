@@ -2,7 +2,10 @@
 #define MAIN_WINDOW_HPP
 
 #include <memory>
+#include <unordered_set>
+#include <vector>
 
+#include <QColor>
 #include <QImage>
 #include <QMainWindow>
 
@@ -12,6 +15,7 @@
 #include "graph.hpp"
 #include "painter_options.hpp"
 #include "path_item.hpp"
+#include "selection_layer_item.hpp"
 
 QT_BEGIN_NAMESPACE
 class QEvent;
@@ -56,7 +60,7 @@ private slots:
     [[maybe_unused]] void showPointColorDialog();
     [[maybe_unused]] void showPathColorDialog();
 
-
+    // Other actions
     [[maybe_unused]] void closePath();
 
 private:
@@ -74,9 +78,11 @@ private:
 
     void clickPoint(const QPoint &position, bool final = false);
     void drawPath(const QPoint &position);
+    void fillFromPoint(const QPoint &position);
 
     bool pointInImage(Point point) const;
     bool pointInImage(QPoint point) const;
+    std::unordered_set<QPoint> pointsFromScene() const;
 
 private:
     bool m_drawing{ false };
@@ -91,12 +97,14 @@ private:
     cv::Mat m_imageGray;
     std::unique_ptr<DiagonalGraph<CostFunction>> m_graph{ nullptr };
 
-    PainterOptions m_painterOptions{ {}, Qt::red, Qt::red, 1, 4 };
+    // TODO: add selection color dialog
+    PainterOptions m_painterOptions{ {}, Qt::red, Qt::red, QColor(255, 160, 160, 70), 1, 4 };
 
     QRectF m_initialSceneRect{};
     QGraphicsScene *m_scene;
     QPoint m_mouseLastScenePosition{};
     PathItem *m_path{ nullptr };
+    SelectionLayerItem *m_selectionItem{ nullptr };
     QUndoStack *m_undoStack;
     int m_numberOfPoints;
 };

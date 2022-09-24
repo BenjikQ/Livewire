@@ -28,6 +28,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "commands.hpp"
+#include "imgprc_helpers.hpp"
 #include "ui_main_window.h"
 
 static const QString caption{ "Open Image" };
@@ -71,9 +72,13 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         if (m_drawing && m_numberOfPoints > 0) {
             drawPath(m_mouseLastScenePosition);
         }
-    } else if (m_drawing && watched == m_scene && event->type() == QEvent::GraphicsSceneMousePress &&
-               static_cast<const QGraphicsSceneMouseEvent *>(event)->button() == Qt::LeftButton) {
-        clickPoint(sceneMousePosition());
+    } else if (event->type() == QEvent::GraphicsSceneMousePress) {
+        const auto pressedMouseButton = static_cast<const QGraphicsSceneMouseEvent *>(event)->button();
+        if (m_drawing && watched == m_scene && pressedMouseButton == Qt::LeftButton) {
+            clickPoint(sceneMousePosition());
+        } else if (!m_drawing && watched == m_scene && pressedMouseButton == Qt::RightButton && m_numberOfPoints >= 2) {
+            fillFromPoint(sceneMousePosition());
+        }
     }
     return false;
 }
@@ -188,6 +193,13 @@ void MainWindow::setupSceneImage() {
     m_scene->addPixmap(QPixmap::fromImage(m_image));
     m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
     m_drawing = true;
+
+    if (!m_selectionItem) {
+        m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
+        m_scene->addItem(m_selectionItem);
+    } else {
+        m_selectionItem->setSize(m_image.width(), m_image.height());
+    }
 }
 
 void MainWindow::setupTextView() {
@@ -257,6 +269,8 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
 }
 
 void MainWindow::drawPath(const QPoint &position) {
+    if (!m_drawing) return;
+
     QPointF start{};
     // Get the last clicked point in the scene
     for (const auto *item : m_scene->items()) {
@@ -294,6 +308,13 @@ void MainWindow::drawPath(const QPoint &position) {
     m_scene->update();
 }
 
+void MainWindow::fillFromPoint(const QPoint &position) {
+    if (!pointInImage(position)) return;
+
+    QUndoCommand *command = new RegionSelectCommand(position, pointsFromScene(), m_scene, m_selectionItem);
+    m_undoStack->push(command);
+}
+
 void MainWindow::closePath() {
     if (!m_drawing || m_numberOfPoints <= 1) return;
 
@@ -317,4 +338,19 @@ bool MainWindow::pointInImage(Point point) const {
 
 bool MainWindow::pointInImage(QPoint point) const {
     return point.x() >= 0 && point.y() >= 0 && point.x() < m_image.width() && point.y() < m_image.height();
+}
+
+std::unordered_set<QPoint> MainWindow::pointsFromScene() const {
+    std::unordered_set<QPoint> points;
+
+    const PathItem *pathItem;
+    for (const auto *item : m_scene->items()) {
+        if (pathItem = dynamic_cast<const PathItem *>(item)) {
+            for (const auto &p : pathItem->getPoints()) {
+                points.insert(p);
+            }
+        }
+    }
+
+    return points;
 }
