@@ -177,7 +177,13 @@ void MainWindow::setupSceneText() {
     m_numberOfPoints = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
+        delete m_path;
         m_path = nullptr;
+    }
+    if (m_selectionItem && m_selectionItem->scene()) {
+        m_scene->removeItem(m_selectionItem);
+        delete m_selectionItem;
+        m_selectionItem = nullptr;
     }
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_undoStack->clear();
@@ -192,10 +198,12 @@ void MainWindow::setupSceneImage() {
     m_numberOfPoints = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
+        delete m_path;
         m_path = nullptr;
     }
     if (m_selectionItem && m_selectionItem->scene()) {
         m_scene->removeItem(m_selectionItem);
+        delete m_selectionItem;
         m_selectionItem = nullptr;
     }
     m_undoStack->clear();
