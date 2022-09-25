@@ -27,7 +27,7 @@ void SelectionLayerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 }
 
 QRectF SelectionLayerItem::boundingRect() const {
-    return QRectF{ 0, 0, 1.0 * m_w, 1.0 * m_h };
+    return QRectF{ 0, 0, static_cast<double>(m_w), static_cast<double>(m_h) };
 }
 
 const std::vector<bool> &SelectionLayerItem::selected() const {
@@ -35,11 +35,8 @@ const std::vector<bool> &SelectionLayerItem::selected() const {
 }
 
 void SelectionLayerItem::setSize(int w, int h) {
-    qDebug() << w << h;
     m_w = w;
     m_h = h;
-
-    // TODO: fix crash during vector deallocation
     m_selectedPixels = std::vector<bool>(w * h, false);
 }
 
@@ -49,7 +46,6 @@ void SelectionLayerItem::setSelected(const std::vector<bool> &sel) {
 }
 
 void SelectionLayerItem::flipSelected(const std::vector<bool> &difference) {
-    qDebug() << difference.size() << m_selectedPixels.size();
     std::transform(difference.cbegin(), difference.cend(), m_selectedPixels.begin(), m_selectedPixels.begin(),
                    std::bit_xor<>());
 }

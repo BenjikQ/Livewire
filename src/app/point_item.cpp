@@ -29,3 +29,7 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 QRectF PointItem::boundingRect() const {
     return { -m_radius - m_width / 2, -m_radius - m_width / 2, 2 * m_radius + m_width, 2 * m_radius + m_width };
 }
+
+int PointItem::type() const {
+    return Type;
+}

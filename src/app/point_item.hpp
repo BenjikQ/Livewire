@@ -15,10 +15,13 @@ struct PainterOptions;
 
 class PointItem : public QGraphicsEllipseItem {
 public:
+    enum { Type = UserType + 2 };
+
     explicit PointItem(const PainterOptions &options, QGraphicsItem *parent = nullptr);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
+    [[nodiscard]] int type() const override;
 
 private:
     QPointF m_position;

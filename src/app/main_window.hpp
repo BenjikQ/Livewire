@@ -15,6 +15,7 @@
 #include "graph.hpp"
 #include "painter_options.hpp"
 #include "path_item.hpp"
+#include "presave_dialog.hpp"
 #include "selection_layer_item.hpp"
 
 QT_BEGIN_NAMESPACE
@@ -83,6 +84,7 @@ private:
     bool pointInImage(Point point) const;
     bool pointInImage(QPoint point) const;
     std::unordered_set<QPoint> pointsFromScene() const;
+    QImage imageFromScene(SaveOpts opts);
 
 private:
     bool m_drawing{ false };
@@ -92,6 +94,7 @@ private:
     QLabel *m_mouseCoordinatesLabel;
     QLabel *m_screenSizeIcon;
     QLabel *m_screenSizeLabel;
+    PresaveDialog *m_saveDialog;
 
     QImage m_image;
     cv::Mat m_imageGray;

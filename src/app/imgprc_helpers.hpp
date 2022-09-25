@@ -4,6 +4,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include <QGraphicsScene>
+#include <QImage>
+#include <QImageWriter>
 #include <QPoint>
 
 namespace std {
@@ -17,5 +20,6 @@ struct hash<QPoint> {
 
 std::vector<bool> floodFill(const std::vector<bool> &region, const std::unordered_set<QPoint> &outline, QPoint origin,
                             int w, int h);
+QImage imageFromScene(const QGraphicsScene &scene, uint8_t opts);
 
 #endif  // IMGPRC_HELPERS_HPP

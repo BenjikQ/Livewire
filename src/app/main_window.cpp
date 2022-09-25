@@ -29,6 +29,8 @@
 
 #include "commands.hpp"
 #include "imgprc_helpers.hpp"
+#include "path_item.hpp"
+#include "point_item.hpp"
 #include "ui_main_window.h"
 
 static const QString caption{ "Open Image" };
@@ -40,7 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
     m_ui{ new Ui::MainWindow },
     m_scene{ new QGraphicsScene{ this } },
-    m_undoStack{ new QUndoStack{ this } } {
+    m_undoStack{ new QUndoStack{ this } },
+    m_saveDialog{ new PresaveDialog{ this } } {
     setupUi();
     setupSceneText();
     setupTextView();
@@ -119,12 +122,15 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 }
 
 [[maybe_unused]] void MainWindow::saveImageFile() {
+    SaveOpts saveOpts;
+    if (!m_saveDialog->exec()) return;
+    saveOpts = m_saveDialog->getResult();
+
     const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
-    if (!filePath.isEmpty()) {
-        QImageWriter writer{ filePath };
-        QImage resultImage{ m_image };
-        writer.write(resultImage);
-    }
+    if (filePath.isEmpty()) return;
+
+    QImageWriter writer{ filePath };
+    writer.write(imageFromScene(saveOpts));
 }
 
 [[maybe_unused]] void MainWindow::closeImageFile() {
@@ -274,11 +280,10 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
 
 void MainWindow::drawPath(const QPoint &position) {
     if (!m_drawing) return;
-
     QPointF start{};
     // Get the last clicked point in the scene
     for (const auto *item : m_scene->items()) {
-        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(item)) {
+        if (qgraphicsitem_cast<const PointItem *>(item)) {
             start = item->pos();
             break;
         }
@@ -326,7 +331,7 @@ void MainWindow::closePath() {
     const auto items = m_scene->items();
 
     for (int i = items.size() - 1; i >= 0; --i) {
-        if (qgraphicsitem_cast<const QGraphicsEllipseItem *>(items[i])) {
+        if (qgraphicsitem_cast<const PointItem *>(items[i])) {
             firstPoint = items[i]->pos().toPoint();
             break;
         }
@@ -349,7 +354,7 @@ std::unordered_set<QPoint> MainWindow::pointsFromScene() const {
 
     const PathItem *pathItem;
     for (const auto *item : m_scene->items()) {
-        if (pathItem = qgraphicsitem_cast<const PathItem*>(item); pathItem != nullptr) {
+        if (pathItem = qgraphicsitem_cast<const PathItem *>(item); pathItem != nullptr) {
             for (const auto &p : pathItem->getPoints()) {
                 points.insert(p);
             }
@@ -357,4 +362,39 @@ std::unordered_set<QPoint> MainWindow::pointsFromScene() const {
     }
 
     return points;
+}
+
+QImage MainWindow::imageFromScene(SaveOpts opts) {
+    static const QColor empty{ 0, 0, 0, 0 };
+    const int w = m_image.width(), h = m_image.height();
+    QColor eraseColor = empty;
+    QImage result = m_image;
+    QPainter painter(&result);
+
+    if (opts.binarize) {
+        eraseColor = Qt::black;
+        result.fill(Qt::white);
+    }
+
+    if (opts.inside != opts.outside) {
+        const auto &selection = m_selectionItem->selected();
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x)
+                if (selection[w * y + x] == opts.outside) result.setPixelColor(x, y, eraseColor);
+    } else if (!opts.inside) {
+        result.fill(eraseColor);
+    }
+
+    for (auto *item : m_scene->items()) {
+        if ((!opts.path || !qgraphicsitem_cast<const PathItem *>(item)) &&
+            (!opts.points || !qgraphicsitem_cast<const PointItem *>(item))) {
+            item->hide();
+        }
+    }
+
+    m_scene->render(&painter);
+    for (auto *item : m_scene->items())
+        item->show();
+
+    return result;
 }
