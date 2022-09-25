@@ -64,6 +64,9 @@ private slots:
     // Other actions
     [[maybe_unused]] void closePath();
 
+    void scalingTime(qreal x);
+    void animationFinished();
+
 private:
     void setupUi();
     void setupSceneText();
@@ -110,6 +113,7 @@ private:
     SelectionLayerItem *m_selectionItem{ nullptr };
     QUndoStack *m_undoStack;
     int m_numberOfPoints;
+    int m_numberOfScheduledScalings;
 };
 
 #endif  // MAIN_WINDOW_HPP

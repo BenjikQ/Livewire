@@ -22,6 +22,7 @@
 #include <QStandardPaths>
 #include <QString>
 #include <QStyle>
+#include <QTimeLine>
 #include <QUndoStack>
 
 #include <opencv2/imgcodecs.hpp>
@@ -82,6 +83,23 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         } else if (!m_drawing && watched == m_scene && pressedMouseButton == Qt::RightButton && m_numberOfPoints >= 2) {
             fillFromPoint(sceneMousePosition());
         }
+    }
+    // https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView
+    else if (!m_image.isNull() && event->type() == QEvent::GraphicsSceneWheel &&
+             QApplication::keyboardModifiers() == Qt::ControlModifier) {
+        const auto wheelEvent = static_cast<const QGraphicsSceneWheelEvent *>(event);
+        const int numberOfDegrees{ wheelEvent->delta() / 8 };
+        const int numberOfSteps{ numberOfDegrees / 15 };
+        m_numberOfScheduledScalings += numberOfSteps;
+        if (m_numberOfScheduledScalings * numberOfSteps < 0) {
+            m_numberOfScheduledScalings = numberOfSteps;
+        }
+        QTimeLine *animation = new QTimeLine(350, this);
+        animation->setUpdateInterval(20);
+
+        connect(animation, SIGNAL(valueChanged(qreal)), this, SLOT(scalingTime(qreal)));
+        connect(animation, SIGNAL(finished()), this, SLOT(animationFinished()));
+        animation->start();
     }
     return false;
 }
@@ -175,6 +193,7 @@ void MainWindow::setupUi() {
 void MainWindow::setupSceneText() {
     m_image = {};
     m_numberOfPoints = 0;
+    m_numberOfScheduledScalings = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
         delete m_path;
@@ -196,6 +215,7 @@ void MainWindow::setupSceneText() {
 
 void MainWindow::setupSceneImage() {
     m_numberOfPoints = 0;
+    m_numberOfScheduledScalings = 0;
     if (m_path && m_path->scene()) {
         m_scene->removeItem(m_path);
         delete m_path;
@@ -348,6 +368,20 @@ void MainWindow::closePath() {
     drawPath(firstPoint);
     clickPoint(firstPoint, true);
 }
+
+void MainWindow::scalingTime(qreal x) {
+    const double factor{ 1.0 + m_numberOfScheduledScalings / 300.0 };
+    m_ui->view->scale(factor, factor);
+}
+
+void MainWindow::animationFinished() {
+    if (m_numberOfScheduledScalings > 0) {
+        --m_numberOfScheduledScalings;
+    } else {
+        ++m_numberOfScheduledScalings;
+    }
+}
+
 
 bool MainWindow::pointInImage(Point point) const {
     return point.x >= 0 && point.y >= 0 && point.x < m_image.width() && point.y < m_image.height();
