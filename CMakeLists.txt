@@ -15,8 +15,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(lemon)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)
-find_package(OpenCV REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Gui MultimediaWidgets)
+find_package(OpenCV REQUIRED core imgcodecs imgproc)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)

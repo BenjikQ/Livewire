@@ -21,7 +21,9 @@
 QT_BEGIN_NAMESPACE
 class QEvent;
 class QGraphicsScene;
+class QGraphicsVideoItem;
 class QLabel;
+class QMediaPlayer;
 class QMouseEvent;
 class QPoint;
 class QResizeEvent;
@@ -49,9 +51,9 @@ protected:
 
 private slots:
     // File actions
-    [[maybe_unused]] void openImageFile();
-    [[maybe_unused]] void saveImageFile();
-    [[maybe_unused]] void closeImageFile();
+    [[maybe_unused]] void openFile();
+    [[maybe_unused]] void saveFile();
+    [[maybe_unused]] void closeFile();
 
     // Edit actions
     [[maybe_unused]] void undo();
@@ -68,11 +70,16 @@ private slots:
     void animationFinished();
 
 private:
+    void openImageFile(const QString &filePath);
+    void openVideoFile(const QString &filePath);
+
     void setupUi();
     void setupSceneText();
     void setupSceneImage();
+    void setupSceneVideo();
     void setupTextView();
     void setupImageView();
+    void setupVideoView();
     void setupStatusBar();
     void setupActions(bool enabled);
 
@@ -84,8 +91,8 @@ private:
     void drawPath(const QPoint &position);
     void fillFromPoint(const QPoint &position);
 
-    bool pointInImage(Point point) const;
-    bool pointInImage(QPoint point) const;
+    bool pointInScene(Point point) const;
+    bool pointInScene(QPoint point) const;
     std::unordered_set<QPoint> pointsFromScene() const;
     QImage imageFromScene(SaveOpts opts);
 
@@ -98,6 +105,9 @@ private:
     QLabel *m_screenSizeIcon;
     QLabel *m_screenSizeLabel;
     PresaveDialog *m_saveDialog;
+
+    QMediaPlayer *m_player{ nullptr };
+    QGraphicsVideoItem *m_video{ nullptr };
 
     QImage m_image;
     cv::Mat m_imageGray;

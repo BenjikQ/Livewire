@@ -20,7 +20,8 @@ target_link_libraries(main
   PRIVATE
     livewire
     Qt6::Widgets
-    Qt6::Gui)
+    Qt6::Gui
+    Qt6::MultimediaWidgets)
 
 set_target_properties(main
   PROPERTIES

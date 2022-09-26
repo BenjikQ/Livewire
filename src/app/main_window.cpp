@@ -10,11 +10,13 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
+#include <QGraphicsVideoItem>
 #include <QIcon>
 #include <QImageReader>
 #include <QImageWriter>
 #include <QKeySequence>
 #include <QLabel>
+#include <QMediaPlayer>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPoint>
@@ -37,7 +39,10 @@
 static const QString caption{ "Open Image" };
 static const QStringList homePath{ QStandardPaths::standardLocations(QStandardPaths::HomeLocation) };
 static const QString homeDirectory{ homePath.first().split(QDir::separator()).last() };
-static const QString filter{ "Image Files (*.png *.jpg *.bmp)" };
+
+static const QList<QString> imageFilters{ "png", "jpg", "bmp" };
+static const QList<QString> videoFilters{ "mp4", "mkv", "avi" };
+static const QString filter{ "Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.mkv *avi)" };
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
@@ -54,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
+    delete m_player;
     if (m_path && !m_path->scene()) {
         delete m_path;
     }
@@ -85,7 +91,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     // https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView
-    else if (!m_image.isNull() && event->type() == QEvent::GraphicsSceneWheel &&
+    else if (m_drawing && event->type() == QEvent::GraphicsSceneWheel &&
              QApplication::keyboardModifiers() == Qt::ControlModifier) {
         const auto wheelEvent = static_cast<const QGraphicsSceneWheelEvent *>(event);
         const int numberOfDegrees{ wheelEvent->delta() / 8 };
@@ -123,27 +129,22 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     }
 }
 
-[[maybe_unused]] void MainWindow::openImageFile() {
+[[maybe_unused]] void MainWindow::openFile() {
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
-        QImageReader reader{ filePath };
-        m_image = reader.read();
-        cv::Mat temp = cv::imread(filePath.toStdString());
-        cv::cvtColor(temp, m_imageGray, cv::COLOR_BGR2GRAY);
-        m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
-        setupSceneImage();
-        setupImageView();
-        const QFileInfo info{ filePath };
-        setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
-        setupActions(true);
+        const QString extension{ QFileInfo{ filePath }.suffix() };
+        if (imageFilters.contains(extension)) {
+            openImageFile(filePath);
+        } else if (videoFilters.contains(extension)) {
+            openVideoFile(filePath);
+        }
     }
 }
 
-[[maybe_unused]] void MainWindow::saveImageFile() {
+[[maybe_unused]] void MainWindow::saveFile() {
     SaveOpts saveOpts;
     if (!m_saveDialog->exec()) return;
     saveOpts = m_saveDialog->getResult();
-
     const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
     if (filePath.isEmpty()) return;
 
@@ -151,7 +152,7 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     writer.write(imageFromScene(saveOpts));
 }
 
-[[maybe_unused]] void MainWindow::closeImageFile() {
+[[maybe_unused]] void MainWindow::closeFile() {
     setupSceneText();
     setupTextView();
     setupActions(false);
@@ -204,6 +205,11 @@ void MainWindow::setupSceneText() {
         delete m_selectionItem;
         m_selectionItem = nullptr;
     }
+    if (m_video && m_video->scene()) {
+        m_scene->removeItem(m_video);
+        delete m_video;
+        m_video = nullptr;
+    }
     const QString openShortcut{ m_ui->actionOpen->shortcut().toString() };
     m_undoStack->clear();
     m_scene->clear();
@@ -226,6 +232,11 @@ void MainWindow::setupSceneImage() {
         delete m_selectionItem;
         m_selectionItem = nullptr;
     }
+    if (m_video && m_video->scene()) {
+        m_scene->removeItem(m_video);
+        delete m_video;
+        m_video = nullptr;
+    }
     m_undoStack->clear();
     m_scene->clear();
     m_scene->addPixmap(QPixmap::fromImage(m_image));
@@ -240,6 +251,37 @@ void MainWindow::setupSceneImage() {
     }
 }
 
+void MainWindow::setupSceneVideo() {
+    m_numberOfPoints = 0;
+    m_numberOfScheduledScalings = 0;
+    if (m_path && m_path->scene()) {
+        m_scene->removeItem(m_path);
+        delete m_path;
+        m_path = nullptr;
+    }
+    if (m_selectionItem && m_selectionItem->scene()) {
+        m_scene->removeItem(m_selectionItem);
+        delete m_selectionItem;
+        m_selectionItem = nullptr;
+    }
+    if (m_video && m_video->scene()) {
+        m_scene->removeItem(m_video);
+        delete m_video;
+        m_video = nullptr;
+    }
+    m_undoStack->clear();
+    m_scene->clear();
+    m_scene->setSceneRect(m_ui->view->rect());
+    m_drawing = false;
+
+    //    if (!m_selectionItem) {
+    //        m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
+    //        m_scene->addItem(m_selectionItem);
+    //    } else {
+    //        m_selectionItem->setSize(m_image.width(), m_image.height());
+    //    }
+}
+
 void MainWindow::setupTextView() {
     m_ui->view->setScene(m_scene);
     m_ui->view->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -247,6 +289,12 @@ void MainWindow::setupTextView() {
 }
 
 void MainWindow::setupImageView() {
+    m_ui->view->setScene(m_scene);
+    m_ui->view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    m_ui->view->show();
+}
+
+void MainWindow::setupVideoView() {
     m_ui->view->setScene(m_scene);
     m_ui->view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     m_ui->view->show();
@@ -298,7 +346,7 @@ void MainWindow::updateLabel(const QPoint &position) {
 }
 
 void MainWindow::clickPoint(const QPoint &position, bool final) {
-    if (!pointInImage(position)) return;
+    if (!pointInScene(position)) return;
 
     m_painterOptions.position = position;
     QUndoCommand *addPointCommand = new AddCommand(m_path ? m_path->getPoints() : QList<QPoint>{}, m_painterOptions,
@@ -322,7 +370,7 @@ void MainWindow::drawPath(const QPoint &position) {
     const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
     const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
 
-    if (!pointInImage(source) || !pointInImage(destination)) return;
+    if (!pointInScene(source) || !pointInScene(destination)) return;
 
     const auto path{ m_graph->shortestPath(source, destination) };
     QList<QPoint> points;
@@ -346,7 +394,7 @@ void MainWindow::drawPath(const QPoint &position) {
 }
 
 void MainWindow::fillFromPoint(const QPoint &position) {
-    if (!pointInImage(position)) return;
+    if (!pointInScene(position)) return;
 
     QUndoCommand *command = new RegionSelectCommand(position, pointsFromScene(), m_scene, m_selectionItem);
     m_undoStack->push(command);
@@ -382,13 +430,41 @@ void MainWindow::animationFinished() {
     }
 }
 
-
-bool MainWindow::pointInImage(Point point) const {
-    return point.x >= 0 && point.y >= 0 && point.x < m_image.width() && point.y < m_image.height();
+void MainWindow::openImageFile(const QString &filePath) {
+    QImageReader reader{ filePath };
+    m_image = reader.read();
+    cv::Mat temp = cv::imread(filePath.toStdString());
+    cv::cvtColor(temp, m_imageGray, cv::COLOR_BGR2GRAY);
+    m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
+    setupSceneImage();
+    setupImageView();
+    const QFileInfo info{ filePath };
+    setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
+    setupActions(true);
 }
 
-bool MainWindow::pointInImage(QPoint point) const {
-    return point.x() >= 0 && point.y() >= 0 && point.x() < m_image.width() && point.y() < m_image.height();
+void MainWindow::openVideoFile(const QString &filePath) {
+    delete m_player;
+    m_player = new QMediaPlayer;
+    m_video = new QGraphicsVideoItem;
+    m_video->setSize(m_ui->view->size());
+    setupSceneVideo();
+    setupVideoView();
+    m_player->setVideoOutput(m_video);
+    m_scene->addItem(m_video);
+    m_player->setSource(QUrl{ filePath });
+    m_player->play();
+    const QFileInfo info{ filePath };
+    setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
+    setupActions(true);
+}
+
+bool MainWindow::pointInScene(Point point) const {
+    return point.x >= 0 && point.y >= 0 && point.x < m_scene->width() && point.y < m_scene->height();
+}
+
+bool MainWindow::pointInScene(QPoint point) const {
+    return pointInScene(Point{ point.x(), point.y() });
 }
 
 std::unordered_set<QPoint> MainWindow::pointsFromScene() const {

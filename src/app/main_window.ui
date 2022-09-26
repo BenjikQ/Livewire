@@ -188,7 +188,7 @@ QToolBar
      <normaloff>../../data/icons/brush.png</normaloff>../../data/icons/brush.png</iconset>
    </property>
    <property name="text">
-    <string> </string>
+    <string/>
    </property>
    <property name="toolTip">
     <string>Line color</string>
@@ -200,7 +200,7 @@ QToolBar
      <normaloff>../../data/icons/point.png</normaloff>../../data/icons/point.png</iconset>
    </property>
    <property name="text">
-    <string> </string>
+    <string/>
    </property>
    <property name="toolTip">
     <string>Point color</string>
@@ -213,7 +213,7 @@ QToolBar
    <sender>actionOpen</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>openImageFile()</slot>
+   <slot>openFile()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -229,7 +229,7 @@ QToolBar
    <sender>actionSaveAs</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>saveImageFile()</slot>
+   <slot>saveFile()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -245,7 +245,7 @@ QToolBar
    <sender>actionCloseFile</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
-   <slot>closeImageFile()</slot>
+   <slot>closeFile()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -323,9 +323,9 @@ QToolBar
   </connection>
  </connections>
  <slots>
-  <slot>openImageFile()</slot>
-  <slot>saveImageFile()</slot>
-  <slot>closeImageFile()</slot>
+  <slot>openFile()</slot>
+  <slot>saveFile()</slot>
+  <slot>closeFile()</slot>
   <slot>undo()</slot>
   <slot>redo()</slot>
   <slot>showPointColorDialog()</slot>
