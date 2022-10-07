@@ -49,7 +49,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui{ new Ui::MainWindow },
     m_scene{ new QGraphicsScene{ this } },
     m_undoStack{ new QUndoStack{ this } },
-    m_saveDialog{ new PresaveDialog{ this } } {
+    m_saveDialog{ new PresaveDialog{ this } },
+    m_compDisplay{ new ComparisonDisplay{ this } } {
     setupUi();
     setupSceneText();
     setupTextView();
@@ -181,6 +182,17 @@ void MainWindow::showPointColorDialog() {
 
 void MainWindow::showPathColorDialog() {
     m_painterOptions.pathColor = QColorDialog::getColor();
+}
+
+void MainWindow::compareJaccard() {
+    const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
+    QImageReader selectedReader(filePath);
+    QImage selected = selectedReader.read();
+    QImage region = imageFromScene({ true, false, false, false, true });
+    const auto data = compareImagesJaccard(selected, region);
+
+    m_compDisplay->prepareDisplay(selected, region, data);
+    m_compDisplay->exec();
 }
 
 void MainWindow::setupUi() {

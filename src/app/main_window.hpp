@@ -11,6 +11,7 @@
 
 #include <opencv2/core/mat.hpp>
 
+#include "comparison_display.hpp"
 #include "cost_functions.hpp"
 #include "graph.hpp"
 #include "painter_options.hpp"
@@ -62,6 +63,7 @@ private slots:
     // Toolbar actions
     [[maybe_unused]] void showPointColorDialog();
     [[maybe_unused]] void showPathColorDialog();
+    [[maybe_unused]] void compareJaccard();
 
     // Other actions
     [[maybe_unused]] void closePath();
@@ -105,6 +107,7 @@ private:
     QLabel *m_screenSizeIcon;
     QLabel *m_screenSizeLabel;
     PresaveDialog *m_saveDialog;
+    ComparisonDisplay *m_compDisplay;
 
     QMediaPlayer *m_player{ nullptr };
     QGraphicsVideoItem *m_video{ nullptr };

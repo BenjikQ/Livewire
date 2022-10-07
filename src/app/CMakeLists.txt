@@ -10,7 +10,9 @@ qt_add_executable(main
   path_item.cpp path_item.hpp
   imgprc_helpers.hpp imgprc_helpers.cpp
   selection_layer_item.hpp selection_layer_item.cpp
-  presave_dialog.hpp presave_dialog.cpp presave_dialog.ui)
+  presave_dialog.hpp presave_dialog.cpp presave_dialog.ui
+  image_label.hpp image_label.cpp
+  comparison_display.hpp comparison_display.cpp comparison_display.ui)
 
 target_link_libraries(main
   PUBLIC

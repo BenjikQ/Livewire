@@ -69,7 +69,7 @@ QToolBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -87,8 +87,15 @@ QToolBar
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionCompare_selection_with_binary_image"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="mouseTracking">
@@ -206,6 +213,11 @@ QToolBar
     <string>Point color</string>
    </property>
   </action>
+  <action name="actionCompare_selection_with_binary_image">
+   <property name="text">
+    <string>Compare selection with binary image</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -321,6 +333,22 @@ QToolBar
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionCompare_selection_with_binary_image</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>compareJaccard()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -330,5 +358,6 @@ QToolBar
   <slot>redo()</slot>
   <slot>showPointColorDialog()</slot>
   <slot>showPathColorDialog()</slot>
+  <slot>compareJaccard()</slot>
  </slots>
 </ui>
