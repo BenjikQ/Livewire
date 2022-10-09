@@ -26,6 +26,8 @@
 #include <QStyle>
 #include <QTimeLine>
 #include <QUndoStack>
+#include <QVideoFrame>
+#include <QVideoSink>
 
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -199,6 +201,7 @@ void MainWindow::setupUi() {
     m_ui->setupUi(this);
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
     new QShortcut(Qt::Key_Return, this, SLOT(closePath()));
+    new QShortcut(Qt::Key_Space, this, SLOT(pauseAndPlayMovie()));
     setWindowIcon(QIcon{ ":/icons/data/icons/app.png" });
     setWindowTitle(QCoreApplication::applicationName());
 }
@@ -439,6 +442,56 @@ void MainWindow::animationFinished() {
         --m_numberOfScheduledScalings;
     } else {
         ++m_numberOfScheduledScalings;
+    }
+}
+
+void MainWindow::pauseAndPlayMovie() {
+    auto clear = [this] {
+        m_numberOfPoints = 0;
+        m_numberOfScheduledScalings = 0;
+        if (m_path && m_path->scene()) {
+            m_scene->removeItem(m_path);
+            delete m_path;
+            m_path = nullptr;
+        }
+        if (m_selectionItem && m_selectionItem->scene()) {
+            m_scene->removeItem(m_selectionItem);
+            delete m_selectionItem;
+            m_selectionItem = nullptr;
+        }
+        if (m_video && m_video->scene()) {
+            m_scene->removeItem(m_video);
+        }
+
+        m_undoStack->clear();
+        m_scene->clear();
+
+        if (!m_selectionItem) {
+            m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
+            m_scene->addItem(m_selectionItem);
+        } else {
+            m_selectionItem->setSize(m_image.width(), m_image.height());
+        }
+    };
+
+    if (m_player) {
+        if (m_player->playbackState() == QMediaPlayer::PlaybackState::PlayingState) {
+            m_player->pause();
+            m_image = m_video->videoSink()->videoFrame().toImage().convertToFormat(QImage::Format_RGBA8888);
+            cv::Mat temp(m_image.height(), m_image.width(), CV_8UC4, (cv::Scalar *)m_image.scanLine(0));
+            cv::cvtColor(temp, m_imageGray, cv::COLOR_RGBA2GRAY);
+            m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
+
+            clear();
+            m_scene->addPixmap(QPixmap::fromImage(m_image));
+            m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
+            m_drawing = true;
+        } else {
+            m_player->play();
+
+            clear();
+            m_scene->addItem(m_video);
+        }
     }
 }
 

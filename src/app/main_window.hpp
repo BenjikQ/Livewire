@@ -71,6 +71,8 @@ private slots:
     void scalingTime(qreal x);
     void animationFinished();
 
+    void pauseAndPlayMovie();
+
 private:
     void openImageFile(const QString &filePath);
     void openVideoFile(const QString &filePath);
