@@ -23,7 +23,8 @@ target_link_libraries(main
     livewire
     Qt6::Widgets
     Qt6::Gui
-    Qt6::MultimediaWidgets)
+    Qt6::MultimediaWidgets
+    opencv_videoio)
 
 set_target_properties(main
   PROPERTIES

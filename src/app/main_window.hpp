@@ -72,6 +72,9 @@ private slots:
     void animationFinished();
 
     void pauseAndPlayMovie();
+    void drawOnVideoFrame();
+    void nextFrame();
+    void previousFrame();
 
 private:
     void openImageFile(const QString &filePath);

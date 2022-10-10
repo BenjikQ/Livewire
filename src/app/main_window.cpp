@@ -31,6 +31,7 @@
 
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 
 #include "commands.hpp"
 #include "imgprc_helpers.hpp"
@@ -199,9 +200,13 @@ void MainWindow::compareJaccard() {
 
 void MainWindow::setupUi() {
     m_ui->setupUi(this);
+    m_ui->view->setSceneRect(QRectF{});
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
     new QShortcut(Qt::Key_Return, this, SLOT(closePath()));
     new QShortcut(Qt::Key_Space, this, SLOT(pauseAndPlayMovie()));
+    new QShortcut(Qt::Key_Left, this, SLOT(previousFrame()));
+    new QShortcut(Qt::Key_Right, this, SLOT(nextFrame()));
+    new QShortcut(Qt::Key_R, this, SLOT(drawOnVideoFrame()));
     setWindowIcon(QIcon{ ":/icons/data/icons/app.png" });
     setWindowTitle(QCoreApplication::applicationName());
 }
@@ -286,7 +291,6 @@ void MainWindow::setupSceneVideo() {
     }
     m_undoStack->clear();
     m_scene->clear();
-    m_scene->setSceneRect(m_ui->view->rect());
     m_drawing = false;
 
     //    if (!m_selectionItem) {
@@ -446,7 +450,50 @@ void MainWindow::animationFinished() {
 }
 
 void MainWindow::pauseAndPlayMovie() {
-    auto clear = [this] {
+    if (m_player) {
+        if (m_player->playbackState() == QMediaPlayer::PlaybackState::PlayingState) {
+            m_player->pause();
+        } else {
+            m_player->play();
+
+            m_numberOfPoints = 0;
+            m_numberOfScheduledScalings = 0;
+            if (m_path && m_path->scene()) {
+                m_scene->removeItem(m_path);
+                delete m_path;
+                m_path = nullptr;
+            }
+            if (m_selectionItem && m_selectionItem->scene()) {
+                m_scene->removeItem(m_selectionItem);
+                delete m_selectionItem;
+                m_selectionItem = nullptr;
+            }
+            if (m_video && m_video->scene()) {
+                m_scene->removeItem(m_video);
+            }
+
+            m_undoStack->clear();
+            m_scene->clear();
+
+            if (!m_selectionItem) {
+                m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
+                m_scene->addItem(m_selectionItem);
+            } else {
+                m_selectionItem->setSize(m_image.width(), m_image.height());
+            }
+            m_scene->addItem(m_video);
+            m_drawing = false;
+        }
+    }
+}
+
+void MainWindow::drawOnVideoFrame() {
+    if (m_player && m_player->playbackState() == QMediaPlayer::PlaybackState::PausedState) {
+        m_image = m_video->videoSink()->videoFrame().toImage().convertToFormat(QImage::Format_RGBA8888);
+        cv::Mat temp(m_image.height(), m_image.width(), CV_8UC4, (cv::Scalar *)m_image.scanLine(0));
+        cv::cvtColor(temp, m_imageGray, cv::COLOR_RGBA2GRAY);
+        m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
+
         m_numberOfPoints = 0;
         m_numberOfScheduledScalings = 0;
         if (m_path && m_path->scene()) {
@@ -472,26 +519,24 @@ void MainWindow::pauseAndPlayMovie() {
         } else {
             m_selectionItem->setSize(m_image.width(), m_image.height());
         }
-    };
 
-    if (m_player) {
-        if (m_player->playbackState() == QMediaPlayer::PlaybackState::PlayingState) {
-            m_player->pause();
-            m_image = m_video->videoSink()->videoFrame().toImage().convertToFormat(QImage::Format_RGBA8888);
-            cv::Mat temp(m_image.height(), m_image.width(), CV_8UC4, (cv::Scalar *)m_image.scanLine(0));
-            cv::cvtColor(temp, m_imageGray, cv::COLOR_RGBA2GRAY);
-            m_graph = std::make_unique<DiagonalGraph<CostFunction>>(CostFunction{}, m_imageGray);
+        m_scene->addPixmap(QPixmap::fromImage(m_image));
+        m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
+        m_drawing = true;
+    }
+}
 
-            clear();
-            m_scene->addPixmap(QPixmap::fromImage(m_image));
-            m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
-            m_drawing = true;
-        } else {
-            m_player->play();
+void MainWindow::previousFrame() {
+    if (m_player && m_player->playbackState() != QMediaPlayer::PlaybackState::PlayingState) {
+        const auto previousFrame = m_player->position() - 16 > 0 ? m_player->position() - 16 : 0;
+        m_player->setPosition(previousFrame);
+    }
+}
 
-            clear();
-            m_scene->addItem(m_video);
-        }
+void MainWindow::nextFrame() {
+    if (m_player && m_player->playbackState() != QMediaPlayer::PlaybackState::PlayingState) {
+        const auto nextFrame = m_player->position() + 16;
+        m_player->setPosition(nextFrame);
     }
 }
 
@@ -512,7 +557,12 @@ void MainWindow::openVideoFile(const QString &filePath) {
     delete m_player;
     m_player = new QMediaPlayer;
     m_video = new QGraphicsVideoItem;
-    m_video->setSize(m_ui->view->size());
+    m_video->setAspectRatioMode(Qt::KeepAspectRatio);
+    cv::VideoCapture videoCapture(filePath.toStdString());
+    const auto width = videoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
+    const auto height = videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
+    videoCapture.release();
+    m_video->setSize({ width, height });
     setupSceneVideo();
     setupVideoView();
     m_player->setVideoOutput(m_video);
