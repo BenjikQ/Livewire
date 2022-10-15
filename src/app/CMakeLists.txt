@@ -45,7 +45,13 @@ qt_add_resources(main "icons"
     "../../data/icons/undo.png"
     "../../data/icons/redo.png"
     "../../data/icons/brush.png"
-    "../../data/icons/point.png")
+    "../../data/icons/point.png"
+    "../../data/icons/pause.png"
+    "../../data/icons/play.png"
+    "../../data/icons/next.png"
+    "../../data/icons/prev.png"
+    "../../data/icons/plus.png"
+    "../../data/icons/minus.png")
 
 # Shouldn't probably be needed
 # but didn't work without copying files

@@ -125,6 +125,14 @@ QToolBar
    </attribute>
    <addaction name="actionChangePointColor"/>
    <addaction name="actionChangePathColor"/>
+   <addaction name="separator"/>
+   <addaction name="actionPreviousFrame"/>
+   <addaction name="actionPauseAndPlay"/>
+   <addaction name="actionNextFrame"/>
+   <addaction name="separator"/>
+   <addaction name="actionZoomOut"/>
+   <addaction name="actionZoom"/>
+   <addaction name="actionZoomIn"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -228,6 +236,56 @@ QToolBar
   <action name="actionLoadOutlines">
    <property name="text">
     <string>Load outlines</string>
+   </property>
+  </action>
+  <action name="actionPauseAndPlay">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/pause.png</normaloff>../../data/icons/pause.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pause and play</string>
+   </property>
+  </action>
+  <action name="actionNextFrame">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/next.png</normaloff>../../data/icons/next.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next frame</string>
+   </property>
+  </action>
+  <action name="actionPreviousFrame">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/prev.png</normaloff>../../data/icons/prev.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous frame</string>
+   </property>
+  </action>
+  <action name="actionZoomOut">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/minus.png</normaloff>../../data/icons/minus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom out</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="text">
+    <string>100%</string>
+   </property>
+  </action>
+  <action name="actionZoomIn">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../data/icons/plus.png</normaloff>../../data/icons/plus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom in</string>
    </property>
   </action>
  </widget>
@@ -393,6 +451,86 @@ QToolBar
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionPauseAndPlay</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>pauseAndPlayMovie()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionPreviousFrame</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>previousFrame()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionNextFrame</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>nextFrame()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionZoomIn</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomIn()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionZoomOut</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -405,5 +543,10 @@ QToolBar
   <slot>compareJaccard()</slot>
   <slot>saveOutlines()</slot>
   <slot>loadOutlines()</slot>
+  <slot>pauseAndPlayMovie()</slot>
+  <slot>nextFrame()</slot>
+  <slot>previousFrame()</slot>
+  <slot>zoomIn()</slot>
+  <slot>zoomOut()</slot>
  </slots>
 </ui>

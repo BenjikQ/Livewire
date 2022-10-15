@@ -72,6 +72,8 @@ private slots:
 
     void scalingTime(qreal x);
     void animationFinished();
+    void zoomIn();
+    void zoomOut();
 
     void pauseAndPlayMovie();
     void drawOnVideoFrame();

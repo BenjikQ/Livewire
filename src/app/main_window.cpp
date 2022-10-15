@@ -1,7 +1,9 @@
 #include "main_window.hpp"
 
 #include <algorithm>
+#include <cmath>
 
+#include <QAction>
 #include <QColorDialog>
 #include <QDir>
 #include <QEvent>
@@ -47,6 +49,8 @@ static const QList<QString> imageFilters{ "png", "jpg", "bmp" };
 static const QList<QString> videoFilters{ "mp4", "mkv", "avi" };
 static const QList<QString> textFilters{ "txt" };
 static const QString filter{ "Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.mkv *avi);;Text Files (*.txt)" };
+
+static double currentZoomFactor{ 100.0 };
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
@@ -96,8 +100,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         }
     }
     // https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView
-    else if (m_drawing && event->type() == QEvent::GraphicsSceneWheel &&
-             QApplication::keyboardModifiers() == Qt::ControlModifier) {
+    else if (event->type() == QEvent::GraphicsSceneWheel && QApplication::keyboardModifiers() == Qt::ControlModifier) {
         const auto wheelEvent = static_cast<const QGraphicsSceneWheelEvent *>(event);
         const int numberOfDegrees{ wheelEvent->delta() / 8 };
         const int numberOfSteps{ numberOfDegrees / 15 };
@@ -456,6 +459,8 @@ void MainWindow::closePath() {
 
 void MainWindow::scalingTime(qreal x) {
     const double factor{ 1.0 + m_numberOfScheduledScalings / 300.0 };
+    currentZoomFactor *= factor;
+    m_ui->toolBar->actions().at(8)->setText(QString::number(currentZoomFactor, 'g', 3) + "%");
     m_ui->view->scale(factor, factor);
 }
 
@@ -467,12 +472,30 @@ void MainWindow::animationFinished() {
     }
 }
 
+void MainWindow::zoomIn() {
+    const double zoom{ std::floor((currentZoomFactor + 10) / 10) * 10 };
+    m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);
+    currentZoomFactor = zoom;
+    m_ui->toolBar->actions().at(8)->setText(QString::number(zoom) + "%");
+}
+
+void MainWindow::zoomOut() {
+    const double zoom{ std::ceil((currentZoomFactor - 10) / 10) * 10 };
+    if (zoom < 10)
+        return;
+    m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);
+    currentZoomFactor = zoom;
+    m_ui->toolBar->actions().at(8)->setText(QString::number(zoom) + "%");
+}
+
 void MainWindow::pauseAndPlayMovie() {
     if (m_player) {
         if (m_player->playbackState() == QMediaPlayer::PlaybackState::PlayingState) {
             m_player->pause();
+            m_ui->toolBar->actions().at(4)->setIcon(QIcon{ ":/icons/data/icons/play.png" });
         } else {
             m_player->play();
+            m_ui->toolBar->actions().at(4)->setIcon(QIcon{ ":/icons/data/icons/pause.png" });
 
             m_numberOfPoints = 0;
             m_numberOfScheduledScalings = 0;
