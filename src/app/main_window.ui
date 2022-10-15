@@ -69,7 +69,7 @@ QToolBar
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -78,6 +78,8 @@ QToolBar
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionSaveOutlines"/>
+    <addaction name="actionLoadOutlines"/>
     <addaction name="actionCloseFile"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -218,6 +220,16 @@ QToolBar
     <string>Compare selection with binary image</string>
    </property>
   </action>
+  <action name="actionSaveOutlines">
+   <property name="text">
+    <string>Save outlines</string>
+   </property>
+  </action>
+  <action name="actionLoadOutlines">
+   <property name="text">
+    <string>Load outlines</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -349,6 +361,38 @@ QToolBar
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSaveOutlines</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveOutlines()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLoadOutlines</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadOutlines()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -359,5 +403,7 @@ QToolBar
   <slot>showPointColorDialog()</slot>
   <slot>showPathColorDialog()</slot>
   <slot>compareJaccard()</slot>
+  <slot>saveOutlines()</slot>
+  <slot>loadOutlines()</slot>
  </slots>
 </ui>

@@ -54,6 +54,8 @@ private slots:
     // File actions
     [[maybe_unused]] void openFile();
     [[maybe_unused]] void saveFile();
+    [[maybe_unused]] void saveOutlines();
+    [[maybe_unused]] void loadOutlines();
     [[maybe_unused]] void closeFile();
 
     // Edit actions
@@ -79,6 +81,9 @@ private slots:
 private:
     void openImageFile(const QString &filePath);
     void openVideoFile(const QString &filePath);
+
+    void saveOutlines(const QString &filePath);
+    void loadOutlines(const QString &filePath);
 
     void setupUi();
     void setupSceneText();

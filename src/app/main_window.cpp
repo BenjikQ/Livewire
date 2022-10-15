@@ -45,7 +45,8 @@ static const QString homeDirectory{ homePath.first().split(QDir::separator()).la
 
 static const QList<QString> imageFilters{ "png", "jpg", "bmp" };
 static const QList<QString> videoFilters{ "mp4", "mkv", "avi" };
-static const QString filter{ "Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.mkv *avi)" };
+static const QList<QString> textFilters{ "txt" };
+static const QString filter{ "Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.mkv *avi);;Text Files (*.txt)" };
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
@@ -154,6 +155,23 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
 
     QImageWriter writer{ filePath };
     writer.write(imageFromScene(saveOpts));
+}
+
+[[maybe_unused]] void MainWindow::saveOutlines() {
+    const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
+    if (!filePath.isEmpty()) {
+        saveOutlines(filePath);
+    }
+}
+
+[[maybe_unused]] void MainWindow::loadOutlines() {
+    const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
+    if (!filePath.isEmpty()) {
+        const QString extension{ QFileInfo{ filePath }.suffix() };
+        if (textFilters.contains(extension)) {
+            loadOutlines(filePath);
+        }
+    }
 }
 
 [[maybe_unused]] void MainWindow::closeFile() {
@@ -572,6 +590,70 @@ void MainWindow::openVideoFile(const QString &filePath) {
     const QFileInfo info{ filePath };
     setWindowTitle(QCoreApplication::applicationName() + " - " + info.fileName());
     setupActions(true);
+}
+
+void MainWindow::saveOutlines(const QString &filePath) {
+    QList<QPoint> points;
+    bool skipPath = true;
+    for (const auto *item : m_scene->items(Qt::SortOrder::AscendingOrder)) {
+        if (const auto pointItem = qgraphicsitem_cast<const PointItem *>(item); pointItem != nullptr) {
+            points.push_back({ static_cast<int>(pointItem->x()), static_cast<int>(pointItem->y()) });
+        } else if (const auto pathItem = qgraphicsitem_cast<const PathItem *>(item); pathItem != nullptr) {
+            if (skipPath) {
+                skipPath = false;
+            } else {
+                points.append(pathItem->getPoints());
+            }
+        }
+    }
+
+    QFile file{ filePath };
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+        for (const auto &point : points) {
+            stream << point.x() << ' ' << point.y() << '\n';
+        }
+    }
+}
+
+void MainWindow::loadOutlines(const QString &filePath) {
+    QFile file{ filePath };
+    QList<QPoint> points;
+    points.reserve(256);
+    if (file.open(QIODevice::ReadOnly)) {
+        QTextStream stream(&file);
+        int x, y;
+        while (!stream.atEnd()) {
+            stream >> x >> y;
+            points.emplace_back(x, y);
+        }
+    }
+    file.close();
+
+    const auto items = m_scene->items(Qt::DescendingOrder);
+    const auto image = std::find_if(items.cbegin(), items.cend(), [](const QGraphicsItem *item) {
+        return qgraphicsitem_cast<const QGraphicsPixmapItem *>(item);
+    });
+
+    if (image != items.cend()) {
+        m_scene->removeItem(*image);
+    }
+
+    m_undoStack->clear();
+    m_scene->clear();
+    m_numberOfPoints = 0;
+
+    if (image != items.cend()) {
+        m_scene->addItem(*image);
+    }
+
+    m_painterOptions.position = points.at(0);
+    QUndoCommand *addPointCommand = new AddCommand(points, m_painterOptions, m_numberOfPoints, m_scene, nullptr);
+    m_undoStack->push(addPointCommand);
+
+    m_path = nullptr;
+
+    m_scene->update();
 }
 
 bool MainWindow::pointInScene(Point point) const {
