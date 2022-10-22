@@ -32,6 +32,9 @@ class QString;
 class QUndoStack;
 QT_END_NAMESPACE
 
+class PointItem;
+struct PathSequence;
+
 // clang-format off
 namespace Ui { class MainWindow; }
 // clang-format on
@@ -69,6 +72,7 @@ private slots:
 
     // Other actions
     [[maybe_unused]] void closePath();
+    [[maybe_unused]] void deletePoint();
 
     void scalingTime(qreal x);
     void animationFinished();
@@ -79,6 +83,10 @@ private slots:
     void drawOnVideoFrame();
     void nextFrame();
     void previousFrame();
+
+    // Debug actions
+    [[maybe_unused]] void dumpSceneIds() const;
+    [[maybe_unused]] void showSelectedSeq();
 
 private:
     void openImageFile(const QString &filePath);
@@ -104,13 +112,24 @@ private:
     void clickPoint(const QPoint &position, bool final = false);
     void drawPath(const QPoint &position);
     void fillFromPoint(const QPoint &position);
+    void trySelectPoint(const QPoint &position);
 
     bool pointInScene(Point point) const;
     bool pointInScene(QPoint point) const;
     std::unordered_set<QPoint> pointsFromScene() const;
     QImage imageFromScene(SaveOpts opts);
+    PointItem *clickedPoint(int x, int y);
+    PathSequence getPathSequence(int pointId);
+    void sceneReindex();
+
+    template <typename T>
+    std::vector<T *> sceneItems(int beginIndex, int count = std::numeric_limits<int>::max() / 2);
+
+    QList<QPoint> generatePath(const QPoint &start, const QPoint &end) const;
 
 private:
+    constexpr static double pointSelectRadius = 20.0;
+
     bool m_drawing{ false };
 
     Ui::MainWindow *m_ui;
@@ -129,7 +148,7 @@ private:
     std::unique_ptr<DiagonalGraph<CostFunction>> m_graph{ nullptr };
 
     // TODO: add selection color dialog
-    PainterOptions m_painterOptions{ {}, Qt::red, Qt::red, QColor(255, 160, 160, 70), 1, 4 };
+    PainterOptions m_painterOptions{ {}, Qt::red, Qt::red, QColor(255, 160, 160, 70), Qt::white, 1, 4 };
 
     QRectF m_initialSceneRect{};
     QGraphicsScene *m_scene;
@@ -137,6 +156,7 @@ private:
     PathItem *m_path{ nullptr };
     SelectionLayerItem *m_selectionItem{ nullptr };
     QUndoStack *m_undoStack;
+    PointItem *m_selectedPoint{ nullptr };
     int m_numberOfPoints;
     int m_numberOfScheduledScalings;
 };

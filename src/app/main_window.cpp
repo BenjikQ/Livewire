@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 
 #include <QAction>
 #include <QColorDialog>
@@ -38,6 +39,7 @@
 #include "commands.hpp"
 #include "imgprc_helpers.hpp"
 #include "path_item.hpp"
+#include "path_sequence.hpp"
 #include "point_item.hpp"
 #include "ui_main_window.h"
 
@@ -51,6 +53,7 @@ static const QList<QString> textFilters{ "txt" };
 static const QString filter{ "Image Files (*.png *.jpg *.bmp);;Video Files (*.mp4 *.mkv *avi);;Text Files (*.txt)" };
 
 static double currentZoomFactor{ 100.0 };
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{ parent },
@@ -84,37 +87,55 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
         const double y{ mouseMoveEvent->scenePos().y() };
         return QPoint{ static_cast<int>(x), static_cast<int>(y) };
     };
-    if (watched == m_scene && event->type() == QEvent::GraphicsSceneMouseMove) {
-        m_mouseLastScenePosition = sceneMousePosition();
-        updateLabel(m_mouseLastScenePosition);
 
-        if (m_drawing && m_numberOfPoints > 0) {
-            drawPath(m_mouseLastScenePosition);
+    switch (event->type()) {
+    case QEvent::GraphicsSceneMouseMove: {
+        if (watched == m_scene) {
+            m_mouseLastScenePosition = sceneMousePosition();
+            updateLabel(m_mouseLastScenePosition);
+
+            if (m_drawing && m_numberOfPoints > 0) {
+                drawPath(m_mouseLastScenePosition);
+            }
         }
-    } else if (event->type() == QEvent::GraphicsSceneMousePress) {
-        const auto pressedMouseButton = static_cast<const QGraphicsSceneMouseEvent *>(event)->button();
-        if (m_drawing && watched == m_scene && pressedMouseButton == Qt::LeftButton) {
-            clickPoint(sceneMousePosition());
-        } else if (!m_drawing && watched == m_scene && pressedMouseButton == Qt::RightButton && m_numberOfPoints >= 2) {
-            fillFromPoint(sceneMousePosition());
+    } break;
+    case QEvent::GraphicsSceneMousePress: {
+        const auto sceneMouseEvent = static_cast<const QGraphicsSceneMouseEvent *>(event);
+        switch (sceneMouseEvent->button()) {
+        case Qt::LeftButton:
+            if (sceneMouseEvent->modifiers() == Qt::ShiftModifier) {
+                trySelectPoint(sceneMousePosition());
+            } else if (m_drawing && watched == m_scene) {
+                clickPoint(sceneMousePosition());
+            }
+            break;
+        case Qt::RightButton:
+            if (!m_drawing && watched == m_scene && m_numberOfPoints >= 2) {
+                fillFromPoint(sceneMousePosition());
+            }
+            break;
         }
-    }
-    // https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView
-    else if (event->type() == QEvent::GraphicsSceneWheel && QApplication::keyboardModifiers() == Qt::ControlModifier) {
+    } break;
+    case QEvent::GraphicsSceneWheel: {
         const auto wheelEvent = static_cast<const QGraphicsSceneWheelEvent *>(event);
-        const int numberOfDegrees{ wheelEvent->delta() / 8 };
-        const int numberOfSteps{ numberOfDegrees / 15 };
-        m_numberOfScheduledScalings += numberOfSteps;
-        if (m_numberOfScheduledScalings * numberOfSteps < 0) {
-            m_numberOfScheduledScalings = numberOfSteps;
-        }
-        QTimeLine *animation = new QTimeLine(350, this);
-        animation->setUpdateInterval(20);
+        if (wheelEvent->modifiers() == Qt::ControlModifier) {
+            // https://wiki.qt.io/Smooth_Zoom_In_QGraphicsView
+            const int numberOfDegrees{ wheelEvent->delta() / 8 };
+            const int numberOfSteps{ numberOfDegrees / 15 };
+            m_numberOfScheduledScalings += numberOfSteps;
+            if (m_numberOfScheduledScalings * numberOfSteps < 0) {
+                m_numberOfScheduledScalings = numberOfSteps;
+            }
+            QTimeLine *animation = new QTimeLine(350, this);
+            animation->setUpdateInterval(20);
 
-        connect(animation, SIGNAL(valueChanged(qreal)), this, SLOT(scalingTime(qreal)));
-        connect(animation, SIGNAL(finished()), this, SLOT(animationFinished()));
-        animation->start();
+            connect(animation, SIGNAL(valueChanged(qreal)), this, SLOT(scalingTime(qreal)));
+            connect(animation, SIGNAL(finished()), this, SLOT(animationFinished()));
+            animation->start();
+        }
+    } break;
     }
+
     return false;
 }
 
@@ -224,12 +245,17 @@ void MainWindow::setupUi() {
     m_ui->view->setSceneRect(QRectF{});
     new QShortcut(QKeySequence::Close, this, SLOT(close()));
     new QShortcut(Qt::Key_Return, this, SLOT(closePath()));
+    new QShortcut(Qt::Key_Delete, this, SLOT(deletePoint()));
     new QShortcut(Qt::Key_Space, this, SLOT(pauseAndPlayMovie()));
     new QShortcut(Qt::Key_Left, this, SLOT(previousFrame()));
     new QShortcut(Qt::Key_Right, this, SLOT(nextFrame()));
     new QShortcut(Qt::Key_R, this, SLOT(drawOnVideoFrame()));
     setWindowIcon(QIcon{ ":/icons/data/icons/app.png" });
     setWindowTitle(QCoreApplication::applicationName());
+
+    // debug shortcuts
+    new QShortcut(Qt::Key_D, this, SLOT(dumpSceneIds()));
+    new QShortcut(Qt::Key_F, this, SLOT(showSelectedSeq()));
 }
 
 void MainWindow::setupSceneText() {
@@ -258,6 +284,7 @@ void MainWindow::setupSceneText() {
     m_scene->installEventFilter(this);
     m_scene->setSceneRect(m_initialSceneRect);
     m_drawing = false;
+    m_selectedPoint = nullptr;
 }
 
 void MainWindow::setupSceneImage() {
@@ -283,6 +310,7 @@ void MainWindow::setupSceneImage() {
     m_scene->addPixmap(QPixmap::fromImage(m_image));
     m_scene->setSceneRect(QRectF(0, 0, m_image.width(), m_image.height()));
     m_drawing = true;
+    m_selectedPoint = nullptr;
 
     if (!m_selectionItem) {
         m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
@@ -313,6 +341,7 @@ void MainWindow::setupSceneVideo() {
     m_undoStack->clear();
     m_scene->clear();
     m_drawing = false;
+    m_selectedPoint = nullptr;
 
     //    if (!m_selectionItem) {
     //        m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
@@ -396,31 +425,22 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
 
 void MainWindow::drawPath(const QPoint &position) {
     if (!m_drawing) return;
-    QPointF start{};
+    QPoint start{};
     // Get the last clicked point in the scene
     for (const auto *item : m_scene->items()) {
         if (qgraphicsitem_cast<const PointItem *>(item)) {
-            start = item->pos();
+            start = item->pos().toPoint();
             break;
         }
     }
 
     if (start.isNull()) return;
 
-    const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
-    const Point destination{ static_cast<int>(position.x()), static_cast<int>(position.y()) };
-
-    if (!pointInScene(source) || !pointInScene(destination)) return;
-
-    const auto path{ m_graph->shortestPath(source, destination) };
-    QList<QPoint> points;
-    points.reserve(path.size());
-    for (auto point : path) {
-        points.emplaceBack(point.x, point.y);
-    }
+    const auto points = generatePath(start, position);
+    if (points.empty()) return;
 
     if (!m_path) {
-        m_path = new PathItem(m_painterOptions, points);
+        m_path = new PathItem(-2, m_painterOptions, points);
         m_scene->addItem(m_path);
     } else {
         m_path->setOptions(m_painterOptions);
@@ -440,6 +460,21 @@ void MainWindow::fillFromPoint(const QPoint &position) {
     m_undoStack->push(command);
 }
 
+void MainWindow::trySelectPoint(const QPoint &position) {
+    if (!pointInScene(position)) return;
+
+    if (m_selectedPoint) {
+        m_selectedPoint->selected = false;
+    }
+
+    if (PointItem *clicked = clickedPoint(position.x(), position.y())) {
+        clicked->selected = true;
+        m_selectedPoint = clicked;
+    }
+
+    m_scene->update();
+}
+
 void MainWindow::closePath() {
     if (!m_drawing || m_numberOfPoints <= 1) return;
 
@@ -455,6 +490,17 @@ void MainWindow::closePath() {
 
     drawPath(firstPoint);
     clickPoint(firstPoint, true);
+}
+
+void MainWindow::deletePoint() {
+    if (m_selectedPoint == nullptr) return;
+
+    const auto seq = getPathSequence(m_selectedPoint->number);
+    QList<QPoint> pts;
+    if (seq.nextPoint && seq.prevPoint)
+        pts = generatePath(seq.nextPoint->pos().toPoint(), seq.prevPoint->pos().toPoint());
+    QUndoCommand *command = new DeleteCommand(seq, pts, m_painterOptions, m_numberOfPoints, m_scene);
+    m_undoStack->push(command);
 }
 
 void MainWindow::scalingTime(qreal x) {
@@ -481,8 +527,7 @@ void MainWindow::zoomIn() {
 
 void MainWindow::zoomOut() {
     const double zoom{ std::ceil((currentZoomFactor - 10) / 10) * 10 };
-    if (zoom < 10)
-        return;
+    if (zoom < 10) return;
     m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);
     currentZoomFactor = zoom;
     m_ui->toolBar->actions().at(8)->setText(QString::number(zoom) + "%");
@@ -515,6 +560,7 @@ void MainWindow::pauseAndPlayMovie() {
 
             m_undoStack->clear();
             m_scene->clear();
+            m_selectedPoint = nullptr;
 
             if (!m_selectionItem) {
                 m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
@@ -553,6 +599,7 @@ void MainWindow::drawOnVideoFrame() {
 
         m_undoStack->clear();
         m_scene->clear();
+        m_selectedPoint = nullptr;
 
         if (!m_selectionItem) {
             m_selectionItem = new SelectionLayerItem(m_painterOptions, m_image.width(), m_image.height());
@@ -665,6 +712,7 @@ void MainWindow::loadOutlines(const QString &filePath) {
     m_undoStack->clear();
     m_scene->clear();
     m_numberOfPoints = 0;
+    m_selectedPoint = nullptr;
 
     if (image != items.cend()) {
         m_scene->addItem(*image);
@@ -735,4 +783,124 @@ QImage MainWindow::imageFromScene(SaveOpts opts) {
         item->show();
 
     return result;
+}
+
+PointItem *MainWindow::clickedPoint(int x, int y) {
+    PointItem *foundItem, *minItem = nullptr;
+    double distance = std::numeric_limits<double>::infinity();
+
+    for (auto *item : m_scene->items()) {
+        if (foundItem = qgraphicsitem_cast<PointItem *>(item); foundItem != nullptr) {
+            const double dx = foundItem->x() - x;
+            const double dy = foundItem->y() - y;
+            const double d = dx * dx + dy * dy;
+            if (d < distance) {
+                minItem = foundItem;
+                distance = d;
+            }
+        }
+    }
+
+    return (std::sqrt(distance) <= pointSelectRadius) ? minItem : nullptr;
+}
+
+PathSequence MainWindow::getPathSequence(int pointId) {
+    PathSequence seq{};
+    const int lastId = m_numberOfPoints - 1;
+    if (pointId > lastId || pointId < 0) return seq;
+    const int prevPointId = (pointId != 0) ? (pointId - 1) : (m_drawing ? -1 : lastId);
+    const int nextPointId = (pointId != lastId) ? (pointId + 1) : (m_drawing ? -1 : 0);
+    const int prevPathId = (pointId != 0) ? pointId : (m_drawing ? -1 : lastId + 1);
+    const int nextPathId = (pointId != lastId) ? (pointId + 1) : (m_drawing ? -1 : 1);
+
+    for (auto *item : m_scene->items()) {
+        if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
+            if (foundItem->number == prevPointId) {
+                seq.prevPoint = foundItem;
+            } else if (foundItem->number == pointId) {
+                seq.thisPoint = foundItem;
+            } else if (foundItem->number == nextPointId) {
+                seq.nextPoint = foundItem;
+            }
+        } else if (PathItem *foundItem = qgraphicsitem_cast<PathItem *>(item)) {
+            if (foundItem->number == prevPathId) {
+                seq.prevPath = foundItem;
+            } else if (foundItem->number == nextPathId) {
+                seq.nextPath = foundItem;
+            }
+        }
+    }
+
+    return seq;
+}
+
+void MainWindow::sceneReindex() {
+    // TODO fix reindexing or replace with better solution
+
+    int pointCtr = m_numberOfPoints - 1;
+    int pathCtr = pointCtr - m_drawing;
+    for (auto *item : m_scene->items()) {
+        if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
+            foundItem->number = pointCtr--;
+        } else if (PathItem *foundItem = qgraphicsitem_cast<PathItem *>(item)) {
+            if (foundItem->number > 0) {
+                foundItem->number = pathCtr--;
+            }
+        }
+    }
+}
+
+QList<QPoint> MainWindow::generatePath(const QPoint &start, const QPoint &end) const {
+    const Point source{ static_cast<int>(start.x()), static_cast<int>(start.y()) };
+    const Point destination{ static_cast<int>(end.x()), static_cast<int>(end.y()) };
+
+    if (!pointInScene(source) || !pointInScene(destination)) return {};
+
+    const auto path{ m_graph->shortestPath(source, destination) };
+    QList<QPoint> points;
+    points.reserve(path.size());
+    for (auto point : path) {
+        points.emplaceBack(point.x, point.y);
+    }
+
+    return points;
+}
+
+void MainWindow::dumpSceneIds() const {
+    qDebug() << "==== ID DUMP ====";
+    for (const auto *item : m_scene->items()) {
+        if (const PointItem *foundItem = qgraphicsitem_cast<const PointItem *>(item)) {
+            qDebug() << "PointItem" << foundItem->number;
+        }
+        if (const PathItem *foundItem = qgraphicsitem_cast<const PathItem *>(item)) {
+            qDebug() << "PathItem" << foundItem->number;
+        }
+    }
+    qDebug() << "=================";
+}
+
+void MainWindow::showSelectedSeq() {
+    if (!m_selectedPoint) return;
+    const auto seq = getPathSequence(m_selectedPoint->number);
+    std::stringstream ss{};
+    ss << seq;
+    const auto s = ss.str();
+    qDebug() << s.c_str();
+}
+
+template <typename T>
+std::vector<T *> MainWindow::sceneItems(int beginIndex, int count) {
+    const int endIndex = beginIndex + count;
+    int ctr = 0;
+    std::vector<T *> items;
+
+    T *foundItem;
+    for (auto *item : m_scene->items()) {
+        if ((foundItem = qgraphicsitem_cast<T *>(item)) && ctr++ >= beginIndex) {
+            items.push_back(foundItem);
+        }
+        if (ctr >= endIndex) break;
+    }
+
+    return items;
 }

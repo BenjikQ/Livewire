@@ -8,15 +8,13 @@
 #include <QPointF>
 #include <QUndoCommand>
 
+#include "path_sequence.hpp"
 #include "selection_layer_item.hpp"
 
 QT_BEGIN_NAMESPACE
 class QGraphicsScene;
 class QUndoCommand;
 QT_END_NAMESPACE
-
-class PathItem;
-class PointItem;
 
 struct PainterOptions;
 
@@ -35,6 +33,24 @@ private:
     PointItem *m_item;
     int &m_numberOfPoints;
     bool *m_drawing;
+};
+
+class DeleteCommand : public QUndoCommand {
+    using ItemPtrList = std::initializer_list<QGraphicsItem *>;
+
+public:
+    DeleteCommand(const PathSequence &seq, const QList<QPoint> &points, const PainterOptions &options,
+                  int &numberOfPoints, QGraphicsScene *scene, QUndoCommand *parent = nullptr);
+    ~DeleteCommand() override;
+
+    void undo() override;
+    void redo() override;
+
+private:
+    QList<QPoint> m_newPathPts, m_oldPathPts;
+    PathSequence m_seq;
+    QGraphicsScene *m_scene;
+    int &m_numberOfPoints;
 };
 
 class RegionSelectCommand : public QUndoCommand {

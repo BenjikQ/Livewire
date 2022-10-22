@@ -15,9 +15,12 @@ struct PainterOptions;
 
 class PathItem : public QGraphicsItem {
 public:
+    int number;
+
     enum { Type = UserType + 1 };
 
-    explicit PathItem(const PainterOptions &options, const QList<QPoint> &points = {}, QGraphicsItem *parent = nullptr);
+    explicit PathItem(int pathNo, const PainterOptions &options, const QList<QPoint> &points = {},
+                      QGraphicsItem *parent = nullptr);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     [[nodiscard]] QRectF boundingRect() const override;

@@ -8,10 +8,11 @@
 
 #include "painter_options.hpp"
 
-PathItem::PathItem(const PainterOptions &options, const QList<QPoint> &points, QGraphicsItem *parent) :
+PathItem::PathItem(int pathNo, const PainterOptions &options, const QList<QPoint> &points, QGraphicsItem *parent) :
     QGraphicsItem(parent),
     m_points{ points },
-    m_color{ options.pathColor } {
+    m_color{ options.pathColor },
+    number{ pathNo } {
     updateBoundRect();
 }
 
@@ -22,7 +23,7 @@ void PathItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 }
 
 QRectF PathItem::boundingRect() const {
-    m_boundRect = QRectF{ 0, 0, 2000, 2000 }; // TODO: updateBoundRect should be sufficient
+    m_boundRect = QRectF{ 0, 0, 2000, 2000 };  // TODO: updateBoundRect should be sufficient
     return m_boundRect;
 }
 

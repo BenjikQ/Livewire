@@ -7,22 +7,34 @@
 
 #include "painter_options.hpp"
 
-PointItem::PointItem(const PainterOptions &options, QGraphicsItem *parent) :
+PointItem::PointItem(int pointNo, const PainterOptions &options, QGraphicsItem *parent) :
     QGraphicsEllipseItem{ parent },
     m_position{ options.position },
     m_radius{ options.radius },
-    m_width{ options.width } {
+    m_width{ options.width },
+    number{ pointNo } {
     const QBrush inner{ options.pointColor };
     const QBrush outer{ options.pointColor };
     const QPen pen{ outer, m_width };
     setPen(pen);
     setBrush(inner);
     setPos(m_position);
+
+    const QBrush innerS{ options.pointSelectionColor };
+    const QBrush outerS{ options.pointSelectionColor };
+    const QPen penS{ outerS, m_width + 3 };
+    m_selectionPen = penS;
+    m_selectionBrush = innerS;
 }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
-    painter->setPen(pen());
-    painter->setBrush(brush());
+    if (selected) {
+        painter->setPen(m_selectionPen);
+        painter->setBrush(m_selectionBrush);
+    } else {
+        painter->setPen(pen());
+        painter->setBrush(brush());
+    }
     painter->drawEllipse({ 0, 0 }, m_radius, m_radius);
 }
 
