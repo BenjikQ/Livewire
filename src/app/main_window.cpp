@@ -786,22 +786,12 @@ QImage MainWindow::imageFromScene(SaveOpts opts) {
 }
 
 PointItem *MainWindow::clickedPoint(int x, int y) {
-    PointItem *foundItem, *minItem = nullptr;
-    double distance = std::numeric_limits<double>::infinity();
-
-    for (auto *item : m_scene->items()) {
-        if (foundItem = qgraphicsitem_cast<PointItem *>(item); foundItem != nullptr) {
-            const double dx = foundItem->x() - x;
-            const double dy = foundItem->y() - y;
-            const double d = dx * dx + dy * dy;
-            if (d < distance) {
-                minItem = foundItem;
-                distance = d;
-            }
+    if (QGraphicsItem *item = m_scene->itemAt(x, y, QTransform{}); item) {
+        if (PointItem *pointItem = qgraphicsitem_cast<PointItem *>(item); pointItem) {
+            return pointItem;
         }
     }
-
-    return (std::sqrt(distance) <= pointSelectRadius) ? minItem : nullptr;
+    return nullptr;
 }
 
 PathSequence MainWindow::getPathSequence(int pointId) {

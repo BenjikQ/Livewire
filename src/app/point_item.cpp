@@ -27,6 +27,7 @@ PointItem::PointItem(int pointNo, const PainterOptions &options, QGraphicsItem *
     m_selectionBrush = innerS;
 
     setZValue(1);
+    setFlag(QGraphicsItem::GraphicsItemFlag::ItemIsSelectable);
 }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -42,6 +43,12 @@ void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 QRectF PointItem::boundingRect() const {
     return { -m_radius - m_width / 2, -m_radius - m_width / 2, 2 * m_radius + m_width, 2 * m_radius + m_width };
+}
+
+QPainterPath PointItem::shape() const {
+    QPainterPath path;
+    path.addEllipse(boundingRect());
+    return path;
 }
 
 int PointItem::type() const {

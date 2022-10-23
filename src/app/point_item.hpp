@@ -26,6 +26,7 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
+    [[nodiscard]] QPainterPath shape() const override;
     [[nodiscard]] int type() const override;
 
 private:
