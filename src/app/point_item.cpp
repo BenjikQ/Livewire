@@ -25,6 +25,8 @@ PointItem::PointItem(int pointNo, const PainterOptions &options, QGraphicsItem *
     const QPen penS{ outerS, m_width + 3 };
     m_selectionPen = penS;
     m_selectionBrush = innerS;
+
+    setZValue(1);
 }
 
 void PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
