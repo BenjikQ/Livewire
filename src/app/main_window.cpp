@@ -658,13 +658,14 @@ void MainWindow::saveOutlines(const QString &filePath) {
     QList<QPoint> points;
     bool skipPath = true;
     for (const auto *item : m_scene->items(Qt::SortOrder::AscendingOrder)) {
-        if (const auto pointItem = qgraphicsitem_cast<const PointItem *>(item); pointItem != nullptr) {
-            points.push_back({ static_cast<int>(pointItem->x()), static_cast<int>(pointItem->y()) });
-        } else if (const auto pathItem = qgraphicsitem_cast<const PathItem *>(item); pathItem != nullptr) {
+        if (const auto *pathItem = qgraphicsitem_cast<const PathItem *>(item); pathItem != nullptr) {
+            // the first path is always the path drawn with cursor move
             if (skipPath) {
                 skipPath = false;
             } else {
-                points.append(pathItem->getPoints());
+                auto pathPoints = pathItem->getPoints();
+                std::reverse(pathPoints.begin(), pathPoints.end());
+                points.append(pathPoints);
             }
         }
     }
@@ -692,13 +693,17 @@ void MainWindow::loadOutlines(const QString &filePath) {
     }
     file.close();
 
-    const auto items = m_scene->items(Qt::DescendingOrder);
+    const auto items = m_scene->items();
     const auto image = std::find_if(items.cbegin(), items.cend(), [](const QGraphicsItem *item) {
         return qgraphicsitem_cast<const QGraphicsPixmapItem *>(item);
     });
 
     if (image != items.cend()) {
         m_scene->removeItem(*image);
+    }
+
+    if (m_selectionItem && m_selectionItem->scene()) {
+        m_scene->removeItem(m_selectionItem);
     }
 
     m_undoStack->clear();
@@ -710,9 +715,25 @@ void MainWindow::loadOutlines(const QString &filePath) {
         m_scene->addItem(*image);
     }
 
-    m_painterOptions.position = points.at(0);
-    QUndoCommand *addPointCommand = new AddCommand(points, m_painterOptions, m_numberOfPoints, m_scene, nullptr);
+    if (m_selectionItem) {
+        m_scene->addItem(m_selectionItem);
+    }
+
+    if (!points.isEmpty()) {
+        points.removeLast();
+    }
+
+
+    m_painterOptions.position = points.constFirst();
+    QUndoCommand *addPointCommand = new AddCommand({}, m_painterOptions, m_numberOfPoints, m_scene, nullptr);
+
+    m_painterOptions.position = points.constLast();
+    QUndoCommand *addPathCommand = new AddCommand(points, m_painterOptions, m_numberOfPoints, m_scene, nullptr);
+
+    m_undoStack->beginMacro("");
     m_undoStack->push(addPointCommand);
+    m_undoStack->push(addPathCommand);
+    m_undoStack->endMacro();
 
     m_path = nullptr;
 
