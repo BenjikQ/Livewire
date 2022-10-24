@@ -425,14 +425,14 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
 
 void MainWindow::drawPath(const QPoint &position) {
     if (!m_drawing) return;
-    QPoint start{};
-    // Get the last clicked point in the scene
-    for (const auto *item : m_scene->items()) {
-        if (qgraphicsitem_cast<const PointItem *>(item)) {
-            start = item->pos().toPoint();
-            break;
-        }
-    }
+    const QPoint start = getLastPoint();
+    //    // Get the last clicked point in the scene
+    //    for (const auto *item : m_scene->items()) {
+    //        if (qgraphicsitem_cast<const PointItem *>(item)) {
+    //            start = item->pos().toPoint();
+    //            break;
+    //        }
+    //    }
 
     if (start.isNull()) return;
 
@@ -440,7 +440,7 @@ void MainWindow::drawPath(const QPoint &position) {
     if (points.empty()) return;
 
     if (!m_path) {
-        m_path = new PathItem(-2, m_painterOptions, points);
+        m_path = new PathItem(PathItem::ACTIVE_PATH_ID, m_painterOptions, points);
         m_scene->addItem(m_path);
     } else {
         m_path->setOptions(m_painterOptions);
@@ -478,15 +478,7 @@ void MainWindow::trySelectPoint(const QPoint &position) {
 void MainWindow::closePath() {
     if (!m_drawing || m_numberOfPoints <= 1) return;
 
-    QPoint firstPoint;
-    const auto items = m_scene->items();
-
-    for (int i = items.size() - 1; i >= 0; --i) {
-        if (qgraphicsitem_cast<const PointItem *>(items[i])) {
-            firstPoint = items[i]->pos().toPoint();
-            break;
-        }
-    }
+    const QPoint firstPoint = getFirstPoint();
 
     drawPath(firstPoint);
     clickPoint(firstPoint, true);
@@ -733,6 +725,31 @@ bool MainWindow::pointInScene(Point point) const {
 
 bool MainWindow::pointInScene(QPoint point) const {
     return pointInScene(Point{ point.x(), point.y() });
+}
+
+QPoint MainWindow::getLastPoint() const {
+    int maxId = -2;
+    const PointItem *lastPointItem = nullptr, *pointItem;
+
+    for (const auto *item : m_scene->items()) {
+        if ((pointItem = qgraphicsitem_cast<const PointItem *>(item)) && pointItem->number > maxId) {
+            lastPointItem = pointItem;
+            maxId = pointItem->number;
+        }
+    }
+
+    return lastPointItem ? lastPointItem->pos().toPoint() : QPoint();
+}
+
+QPoint MainWindow::getFirstPoint() const {
+    const PointItem *pointItem;
+    for (const auto *item : m_scene->items()) {
+        if ((pointItem = qgraphicsitem_cast<const PointItem *>(item)) && pointItem->number == 0) {
+            return pointItem->pos().toPoint();
+        }
+    }
+
+    return QPoint();
 }
 
 std::unordered_set<QPoint> MainWindow::pointsFromScene() const {

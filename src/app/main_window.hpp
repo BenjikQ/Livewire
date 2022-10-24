@@ -116,6 +116,8 @@ private:
 
     bool pointInScene(Point point) const;
     bool pointInScene(QPoint point) const;
+    QPoint getLastPoint() const;
+    QPoint getFirstPoint() const;
     std::unordered_set<QPoint> pointsFromScene() const;
     QImage imageFromScene(SaveOpts opts);
     PointItem *clickedPoint(int x, int y);

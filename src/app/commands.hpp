@@ -47,10 +47,12 @@ public:
     void redo() override;
 
 private:
-    QList<QPoint> m_newPathPts, m_oldPathPts;
+    QList<QPoint> m_newPathPts{}, m_oldPathPts{};
     PathSequence m_seq;
     QGraphicsScene *m_scene;
     int &m_numberOfPoints;
+
+    void adjustSceneIndexing(bool reverse = false);
 };
 
 class RegionSelectCommand : public QUndoCommand {

@@ -15,6 +15,8 @@ struct PainterOptions;
 
 class PathItem : public QGraphicsItem {
 public:
+    constexpr static int ACTIVE_PATH_ID = std::numeric_limits<int>::min();
+
     int number;
 
     enum { Type = UserType + 1 };

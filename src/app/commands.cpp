@@ -80,34 +80,64 @@ DeleteCommand::DeleteCommand(const PathSequence &seq, const QList<QPoint> &point
     m_scene{ scene } {
     if (!points.empty()) {
         m_newPathPts = points;
-        m_oldPathPts = m_seq.prevPath->getPoints();
+        m_oldPathPts = m_seq.nextPath->getPoints();
     }
 }
 
 DeleteCommand::~DeleteCommand() {}
 
 void DeleteCommand::undo() {
-    for (auto item : ItemPtrList{ m_seq.nextPath, m_seq.thisPoint }) {
+    adjustSceneIndexing(true);
+    for (auto item : ItemPtrList{ m_seq.prevPath, m_seq.thisPoint }) {
         if (item) {
             m_scene->addItem(item);
         }
     }
     if (!m_newPathPts.empty()) {
-        m_seq.prevPath->setPoints(m_oldPathPts);
+        m_seq.nextPath->setPoints(m_oldPathPts);
+    } else if (m_seq.nextPath) {
+        m_seq.nextPath->show();
     }
     ++m_numberOfPoints;
     m_scene->update();
 }
 
 void DeleteCommand::redo() {
-    for (auto item : ItemPtrList{ m_seq.nextPath, m_seq.thisPoint }) {
+    for (auto item : ItemPtrList{ m_seq.prevPath, m_seq.thisPoint }) {
         if (item) {
             m_scene->removeItem(item);
         }
     }
     if (!m_newPathPts.empty()) {
-        m_seq.prevPath->setPoints(m_newPathPts);
+        m_seq.nextPath->setPoints(m_newPathPts);
+    } else if (m_seq.nextPath) {
+        m_seq.nextPath->hide();
     }
     --m_numberOfPoints;
+    adjustSceneIndexing();
     m_scene->update();
+}
+
+void DeleteCommand::adjustSceneIndexing(bool reverse) {
+    const int delIndex = m_seq.thisPoint->number;
+    const int diff = reverse ? 1 : -1;
+
+    qDebug() << "DEL INDEX" << delIndex;
+
+    // TODO fix PointItem 1 losing prevPath after PointItem 0 is deleted
+    for (auto *item : m_scene->items()) {
+        if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
+            if ((foundItem->number > delIndex) || (reverse && (foundItem->number == delIndex))) {
+                qDebug() << "POINT" << foundItem->number << "->" << foundItem->number + diff;
+                foundItem->number += diff;
+            }
+        } else if (PathItem *foundItem = qgraphicsitem_cast<PathItem *>(item)) {
+            if (foundItem->number != PathItem::ACTIVE_PATH_ID &&
+                ((delIndex == 0 && m_seq.prevPoint == nullptr) || (foundItem->number > delIndex) ||
+                 (reverse && (foundItem->number == delIndex)))) {
+                qDebug() << "PATH" << foundItem->number << "->" << foundItem->number + diff;
+                foundItem->number += diff;
+            }
+        }
+    }
 }
