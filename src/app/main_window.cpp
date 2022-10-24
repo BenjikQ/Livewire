@@ -188,12 +188,29 @@ void MainWindow::closeEvent(QCloseEvent *closeEvent) {
     }
 }
 
+[[maybe_unused]] void MainWindow::saveOutlinesWithColors() {
+    const QString filePath = QFileDialog::getSaveFileName(this, caption, homeDirectory, filter);
+    if (!filePath.isEmpty()) {
+        saveOutlinesWithColors(filePath);
+    }
+}
+
 [[maybe_unused]] void MainWindow::loadOutlines() {
     const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
     if (!filePath.isEmpty()) {
         const QString extension{ QFileInfo{ filePath }.suffix() };
         if (textFilters.contains(extension)) {
             loadOutlines(filePath);
+        }
+    }
+}
+
+[[maybe_unused]] void MainWindow::loadOutlinesWithColors() {
+    const QString filePath = QFileDialog::getOpenFileName(this, caption, homeDirectory, filter);
+    if (!filePath.isEmpty()) {
+        const QString extension{ QFileInfo{ filePath }.suffix() };
+        if (textFilters.contains(extension)) {
+            loadOutlinesWithColors(filePath);
         }
     }
 }
@@ -679,6 +696,31 @@ void MainWindow::saveOutlines(const QString &filePath) {
     }
 }
 
+void MainWindow::saveOutlinesWithColors(const QString &filePath) {
+    QFile file{ filePath };
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+        stream << m_numberOfPoints << '\n';
+        for (const auto *item : m_scene->items(Qt::SortOrder::AscendingOrder)) {
+            if (const auto *pointItem = qgraphicsitem_cast<const PointItem *>(item); pointItem != nullptr) {
+                stream << pointItem->x() << ' ' << pointItem->y() << '\n';
+                const auto &color = pointItem->getColor();
+                stream << color.red() << ' ' << color.green() << ' ' << color.blue() << '\n';
+            } else if (const auto *pathItem = qgraphicsitem_cast<const PathItem *>(item); pathItem != nullptr) {
+                // We skip not saved path
+                if (pathItem != m_path) {
+                    stream << pathItem->getPoints().size() << '\n';
+                    for (const auto &point : pathItem->getPoints()) {
+                        stream << point.x() << ' ' << point.y() << '\n';
+                    }
+                    const auto &color = pathItem->getColor();
+                    stream << color.red() << ' ' << color.green() << ' ' << color.blue() << '\n';
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::loadOutlines(const QString &filePath) {
     QFile file{ filePath };
     QList<QPoint> points;
@@ -736,6 +778,97 @@ void MainWindow::loadOutlines(const QString &filePath) {
     m_undoStack->endMacro();
 
     m_path = nullptr;
+
+    m_scene->update();
+}
+
+void MainWindow::loadOutlinesWithColors(const QString &filePath) {
+    const auto items = m_scene->items();
+    const auto image = std::find_if(items.cbegin(), items.cend(), [](const QGraphicsItem *item) {
+        return qgraphicsitem_cast<const QGraphicsPixmapItem *>(item);
+    });
+
+    if (image != items.cend()) {
+        m_scene->removeItem(*image);
+    }
+
+    if (m_selectionItem && m_selectionItem->scene()) {
+        m_scene->removeItem(m_selectionItem);
+    }
+
+    m_undoStack->clear();
+    m_scene->clear();
+    m_numberOfPoints = 0;
+    m_selectedPoint = nullptr;
+
+    if (image != items.cend()) {
+        m_scene->addItem(*image);
+    }
+
+    if (m_selectionItem) {
+        m_scene->addItem(m_selectionItem);
+    }
+
+    m_path = nullptr;
+
+    QFile file{ filePath };
+    if (file.open(QIODevice::ReadOnly)) {
+        QTextStream stream(&file);
+        int numberOfPoints;
+        stream >> numberOfPoints;
+
+        QList<QList<QPoint>> pathsPoints;
+        QList<QColor> pathsColors;
+        pathsPoints.reserve(numberOfPoints);
+        pathsColors.reserve(numberOfPoints);
+
+        // Read paths points and colors
+        for (int i = 0; i < numberOfPoints - 1; ++i) {
+            int pathLength;
+            stream >> pathLength;
+            QList<QPoint> points;
+            points.reserve(pathLength);
+            for (int j = 0; j < pathLength; ++j) {
+                int x, y;
+                stream >> x >> y;
+                points.emplaceBack(x, y);
+            }
+            int r, g, b;
+            stream >> r >> g >> b;
+            pathsPoints.push_back(points);
+            pathsColors.emplace_back(r, g, b);
+        }
+
+        QList<QColor> pointsColors;
+        QList<QPoint> pointsPositions;
+        pointsPositions.reserve(numberOfPoints);
+        pointsColors.reserve(numberOfPoints);
+
+        // Read points colors
+        for (int i = 0; i < numberOfPoints; ++i) {
+            int x, y;
+            stream >> x >> y;
+            pointsPositions.emplaceBack(x, y);
+
+            int r, g, b;
+            stream >> r >> g >> b;
+            pointsColors.emplaceBack(r, g, b);
+        }
+
+
+        // We need to add last one point
+        // which doesn't have associated path
+        m_painterOptions.pointColor = pointsColors.first();
+        m_painterOptions.position = pointsPositions.first();
+        m_undoStack->push(new AddCommand({}, m_painterOptions, m_numberOfPoints, m_scene, nullptr));
+
+        for (int i = 0; i < numberOfPoints - 1; ++i) {
+            m_painterOptions.pathColor = pathsColors.at(i);
+            m_painterOptions.pointColor = pointsColors.at(i + 1);
+            m_painterOptions.position = pointsPositions.at(i + 1);
+            m_undoStack->push(new AddCommand(pathsPoints.at(i), m_painterOptions, m_numberOfPoints, m_scene, nullptr));
+        }
+    }
 
     m_scene->update();
 }

@@ -58,7 +58,9 @@ private slots:
     [[maybe_unused]] void openFile();
     [[maybe_unused]] void saveFile();
     [[maybe_unused]] void saveOutlines();
+    [[maybe_unused]] void saveOutlinesWithColors();
     [[maybe_unused]] void loadOutlines();
+    [[maybe_unused]] void loadOutlinesWithColors();
     [[maybe_unused]] void closeFile();
 
     // Edit actions
@@ -93,7 +95,10 @@ private:
     void openVideoFile(const QString &filePath);
 
     void saveOutlines(const QString &filePath);
+    void saveOutlinesWithColors(const QString &filePath);
+
     void loadOutlines(const QString &filePath);
+    void loadOutlinesWithColors(const QString &filePath);
 
     void setupUi();
     void setupSceneText();

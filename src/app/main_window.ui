@@ -79,7 +79,9 @@ QToolBar
     <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveOutlines"/>
+    <addaction name="actionSaveOutlinesWithColors"/>
     <addaction name="actionLoadOutlines"/>
+    <addaction name="actionLoadOutlinesWithColors"/>
     <addaction name="actionCloseFile"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -286,6 +288,16 @@ QToolBar
    </property>
    <property name="text">
     <string>Zoom in</string>
+   </property>
+  </action>
+  <action name="actionSaveOutlinesWithColors">
+   <property name="text">
+    <string>Save outlines with colors</string>
+   </property>
+  </action>
+  <action name="actionLoadOutlinesWithColors">
+   <property name="text">
+    <string>Load outlines with colors</string>
    </property>
   </action>
  </widget>
@@ -531,6 +543,38 @@ QToolBar
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSaveOutlinesWithColors</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveOutlinesWithColors()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLoadOutlinesWithColors</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>loadOutlinesWithColors()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -548,5 +592,7 @@ QToolBar
   <slot>previousFrame()</slot>
   <slot>zoomIn()</slot>
   <slot>zoomOut()</slot>
+  <slot>saveOutlinesWithColors()</slot>
+  <slot>loadOutlinesWithColors()</slot>
  </slots>
 </ui>

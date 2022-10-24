@@ -28,6 +28,8 @@ public:
     [[nodiscard]] QRectF boundingRect() const override;
     [[nodiscard]] int type() const override;
 
+    [[nodiscard]] QColor getColor() const { return m_color; }
+
     void setPoints(QList<QPoint> points);
     QList<QPoint> getPoints() const;
     void setOptions(const PainterOptions &options);

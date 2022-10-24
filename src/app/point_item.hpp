@@ -29,10 +29,13 @@ public:
     [[nodiscard]] QPainterPath shape() const override;
     [[nodiscard]] int type() const override;
 
+    [[nodiscard]] QColor getColor() const { return m_color; }
+
 private:
     QPointF m_position;
     QPen m_selectionPen;
     QBrush m_selectionBrush;
+    QColor m_color;
     float m_radius;
     float m_width;
 };
