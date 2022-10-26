@@ -441,7 +441,12 @@ void MainWindow::clickPoint(const QPoint &position, bool final) {
 }
 
 void MainWindow::drawPath(const QPoint &position) {
-    if (!m_drawing) return;
+    if (!m_drawing) {
+        if (m_path) m_path->hide();
+        return;
+    } else if (m_path)
+        m_path->show();
+
     const QPoint start = getLastPoint();
     //    // Get the last clicked point in the scene
     //    for (const auto *item : m_scene->items()) {
@@ -972,7 +977,7 @@ PathSequence MainWindow::getPathSequence(int pointId) {
     const int prevPointId = (pointId != 0) ? (pointId - 1) : (m_drawing ? -1 : lastId);
     const int nextPointId = (pointId != lastId) ? (pointId + 1) : (m_drawing ? -1 : 0);
     const int prevPathId = (pointId != 0) ? pointId : (m_drawing ? -1 : lastId + 1);
-    const int nextPathId = (pointId != lastId) ? (pointId + 1) : (m_drawing ? -1 : 1);
+    const int nextPathId = (pointId != lastId) ? (pointId + 1) : (m_drawing ? -1 : m_numberOfPoints);
 
     for (auto *item : m_scene->items()) {
         if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
@@ -993,22 +998,6 @@ PathSequence MainWindow::getPathSequence(int pointId) {
     }
 
     return seq;
-}
-
-void MainWindow::sceneReindex() {
-    // TODO fix reindexing or replace with better solution
-
-    int pointCtr = m_numberOfPoints - 1;
-    int pathCtr = pointCtr - m_drawing;
-    for (auto *item : m_scene->items()) {
-        if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
-            foundItem->number = pointCtr--;
-        } else if (PathItem *foundItem = qgraphicsitem_cast<PathItem *>(item)) {
-            if (foundItem->number > 0) {
-                foundItem->number = pathCtr--;
-            }
-        }
-    }
 }
 
 QList<QPoint> MainWindow::generatePath(const QPoint &start, const QPoint &end) const {

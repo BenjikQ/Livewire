@@ -127,7 +127,6 @@ private:
     QImage imageFromScene(SaveOpts opts);
     PointItem *clickedPoint(int x, int y);
     PathSequence getPathSequence(int pointId);
-    void sceneReindex();
 
     template <typename T>
     std::vector<T *> sceneItems(int beginIndex, int count = std::numeric_limits<int>::max() / 2);

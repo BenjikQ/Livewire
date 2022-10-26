@@ -123,8 +123,8 @@ void DeleteCommand::adjustSceneIndexing(bool reverse) {
     const int diff = reverse ? 1 : -1;
 
     qDebug() << "DEL INDEX" << delIndex;
+    qDebug() << "POINT COUNT" << m_numberOfPoints;
 
-    // TODO fix PointItem 1 losing prevPath after PointItem 0 is deleted
     for (auto *item : m_scene->items()) {
         if (PointItem *foundItem = qgraphicsitem_cast<PointItem *>(item)) {
             if ((foundItem->number > delIndex) || (reverse && (foundItem->number == delIndex))) {
@@ -135,8 +135,16 @@ void DeleteCommand::adjustSceneIndexing(bool reverse) {
             if (foundItem->number != PathItem::ACTIVE_PATH_ID &&
                 ((delIndex == 0 && m_seq.prevPoint == nullptr) || (foundItem->number > delIndex) ||
                  (reverse && (foundItem->number == delIndex)))) {
-                qDebug() << "PATH" << foundItem->number << "->" << foundItem->number + diff;
+                const int oldNumber = foundItem->number;
                 foundItem->number += diff;
+
+                // special case for deleting PointItem 0 with closed path
+                if (!reverse && foundItem->number == 0 && m_seq.prevPoint != nullptr)
+                    foundItem->number = m_numberOfPoints;
+                else if (reverse && (foundItem->number == m_numberOfPoints + 1) && m_seq.prevPoint != nullptr)
+                    foundItem->number = 1;
+
+                qDebug() << "PATH" << oldNumber << "->" << foundItem->number;
             }
         }
     }
