@@ -85,6 +85,8 @@ private slots:
     void drawOnVideoFrame();
     void nextFrame();
     void previousFrame();
+    void firstFrame();
+    void lastFrame();
 
     // Debug actions
     [[maybe_unused]] void dumpSceneIds() const;
@@ -148,6 +150,7 @@ private:
 
     QMediaPlayer *m_player{ nullptr };
     QGraphicsVideoItem *m_video{ nullptr };
+    qint64 m_videoDuration{};
 
     QImage m_image;
     cv::Mat m_imageGray;

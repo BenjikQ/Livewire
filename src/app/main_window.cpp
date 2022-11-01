@@ -520,7 +520,7 @@ void MainWindow::deletePoint() {
 void MainWindow::scalingTime(qreal x) {
     const double factor{ 1.0 + m_numberOfScheduledScalings / 300.0 };
     currentZoomFactor *= factor;
-    m_ui->toolBar->actions().at(8)->setText(QString::number(currentZoomFactor, 'g', 3) + "%");
+    m_ui->toolBar->actions().at(10)->setText(QString::number(currentZoomFactor, 'g', 3) + "%");  // TODO: Magic number
     m_ui->view->scale(factor, factor);
 }
 
@@ -536,25 +536,25 @@ void MainWindow::zoomIn() {
     const double zoom{ std::floor((currentZoomFactor + 10) / 10) * 10 };
     m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);
     currentZoomFactor = zoom;
-    m_ui->toolBar->actions().at(8)->setText(QString::number(zoom) + "%");
+    m_ui->toolBar->actions().at(10)->setText(QString::number(zoom) + "%");  // TODO: Magic number and copy from above
 }
 
 void MainWindow::zoomOut() {
     const double zoom{ std::ceil((currentZoomFactor - 10) / 10) * 10 };
     if (zoom < 10) return;
-    m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);
+    m_ui->view->scale(zoom / currentZoomFactor, zoom / currentZoomFactor);  // TODO: Magic number and copy from above
     currentZoomFactor = zoom;
-    m_ui->toolBar->actions().at(8)->setText(QString::number(zoom) + "%");
+    m_ui->toolBar->actions().at(10)->setText(QString::number(zoom) + "%");
 }
 
 void MainWindow::pauseAndPlayMovie() {
     if (m_player) {
         if (m_player->playbackState() == QMediaPlayer::PlaybackState::PlayingState) {
             m_player->pause();
-            m_ui->toolBar->actions().at(4)->setIcon(QIcon{ ":/icons/data/icons/play.png" });
+            m_ui->toolBar->actions().at(5)->setIcon(QIcon{ ":/icons/data/icons/play.png" });
         } else {
             m_player->play();
-            m_ui->toolBar->actions().at(4)->setIcon(QIcon{ ":/icons/data/icons/pause.png" });
+            m_ui->toolBar->actions().at(5)->setIcon(QIcon{ ":/icons/data/icons/pause.png" });
 
             m_numberOfPoints = 0;
             m_numberOfScheduledScalings = 0;
@@ -637,8 +637,25 @@ void MainWindow::previousFrame() {
 
 void MainWindow::nextFrame() {
     if (m_player && m_player->playbackState() != QMediaPlayer::PlaybackState::PlayingState) {
-        const auto nextFrame = m_player->position() + 16;
+        const auto nextFrame =
+            m_player->position() + 33 > m_videoDuration ? m_videoDuration - 16 : m_player->position() + 16;
         m_player->setPosition(nextFrame);
+    }
+}
+
+void MainWindow::firstFrame() {
+    if (m_player) {
+        m_player->pause();
+        m_player->setPosition(0);
+        m_ui->toolBar->actions().at(5)->setIcon(QIcon{ ":/icons/data/icons/play.png" });
+    }
+}
+
+void MainWindow::lastFrame() {
+    if (m_player) {
+        m_player->pause();
+        m_player->setPosition(m_videoDuration - 16);
+        m_ui->toolBar->actions().at(5)->setIcon(QIcon{ ":/icons/data/icons/play.png" });
     }
 }
 
@@ -663,6 +680,9 @@ void MainWindow::openVideoFile(const QString &filePath) {
     cv::VideoCapture videoCapture(filePath.toStdString());
     const auto width = videoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
     const auto height = videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
+    const auto frames = videoCapture.get(cv::CAP_PROP_FRAME_COUNT);
+    const auto fps = videoCapture.get(cv::CAP_PROP_FPS);
+    m_videoDuration = frames / fps * 1000;
     videoCapture.release();
     m_video->setSize({ width, height });
     setupSceneVideo();
